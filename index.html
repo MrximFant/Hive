@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Utilities Hub</title>
+    <link rel="stylesheet" href="assets/css/style.css"> <!-- Link to your global stylesheet -->
+    <style>
+        /* Additional styles specific to index.html, or can be moved to style.css */
+        body.index-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .hub-container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        .hub-container h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .tool-link {
+            display: block;
+            background-color: #007bff;
+            color: white;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .tool-link:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        .tool-link .description {
+            font-size: 0.85em;
+            opacity: 0.8;
+            display: block;
+            margin-top: 5px;
+        }
+        .github-source-link {
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+        .github-source-link a {
+            color: #555;
+        }
+        .github-source-link a:hover {
+            color: #000;
+        }
 
+    </style>
+</head>
+<body class="index-page"> <!-- Added class for specific body styling -->
+
+    <div class="hub-container">
+        <h1>Game Utility Hub</h1>
+
+        <a href="builder.html" class="tool-link">
+            Hive Builder
+            <span class="description">Access the map layout and hive building tool.</span>
+        </a>
+        <!-- Note: GitHub Pages will serve builder.html from the same repository. -->
+        <!-- If Hive builder is a DIFFERENT deployed site, use its full URL. -->
+        <!-- Example if Hive builder is at a separate GH Pages URL: -->
+        <!-- <a href="https://mrximfant.github.io/Hive/" class="tool-link" target="_blank" rel="noopener noreferrer"> -->
+
+
+        <a href="https://mrximfant.github.io/Interactive-map-with-confirmation/" class="tool-link" target="_blank" rel="noopener noreferrer">
+            Supplies List
+            <span class="description">Interactive map for managing supplies with confirmation.</span>
+        </a>
+
+        <div class="github-source-link">
+            <p>View source or contribute on <a href="https://github.com/MrximFant/" target="_blank" rel="noopener noreferrer">GitHub</a>.</p>
+            <!-- Or link to the specific repo if this index.html is part of one -->
+            <!-- <p>View source for this hub on <a href="https://github.com/MrximFant/YOUR-HUB-REPO-NAME/" target="_blank" rel="noopener noreferrer">GitHub</a>.</p> -->
+        </div>
+    </div>
+
+    <!-- You might not need main.js for this simple index page -->
+    <!-- <script src="assets/js/main.js"></script> -->
+</body>
+</html>
