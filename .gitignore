@@ -1,0 +1,21 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE/Editor specific folders
+.vscode/
+.idea/
+
+# Log files (if you happen to generate any)
+*.log
+
+# If you ever use Node.js (e.g., for a build tool, linter, etc.)
+# node_modules/
+# package-lock.json # (Some prefer to commit this, some don't for libraries)
+# npm-debug.log*
+# yarn-error.log
+
+# Any local configuration files you don't want to share
+# config.local.js
+# .env
