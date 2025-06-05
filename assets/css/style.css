@@ -1,1 +1,91 @@
+/* assets/css/style.css */
 
+/* --- Basic Resets & Defaults --- */
+html {
+    box-sizing: border-box; /* Apply border-box to all elements via inheritance */
+    font-size: 16px; /* Base font size */
+}
+
+*, *::before, *::after {
+    box-sizing: inherit; /* Inherit box-sizing */
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f4f4f4; /* A light background for the entire page body */
+}
+
+/* --- Basic Typography (Site-wide) --- */
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0.75em;
+    line-height: 1.2;
+    font-weight: normal; /* Or bold, depending on your preference */
+}
+
+h1 { font-size: 2.5em; }
+h2 { font-size: 2em; }
+h3 { font-size: 1.5em; }
+h4 { font-size: 1.2em; }
+
+p {
+    margin-bottom: 1em;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+/* --- Common Layout Elements (Example for a multi-page site) --- */
+/*
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header.site-header {
+    background: #333;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+nav.site-nav ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+}
+
+nav.site-nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+footer.site-footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 30px;
+}
+*/
+
+/* --- Utility Classes (Optional) --- */
+.text-center {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
