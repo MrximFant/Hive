@@ -338,3 +338,32 @@ body.builder-page { /* Add class="builder-page" to your <body> tag in builder.ht
     z-index: 100;         /* Ensures it sits on top of other direct children of #main-area if needed */
     user-select: none;    /* Prevents the text from being easily selected by mouse drag */
 }
+
+
+/* assets/css/builder-styles.css */
+
+/* ... your existing styles ... */
+
+#toolbar button#save-setup-btn {
+    background-color: #28a745; /* Green for save */
+    color: white;
+}
+#toolbar button#save-setup-btn:hover {
+    background-color: #218838;
+}
+
+#toolbar button#load-setup-btn {
+    background-color: #17a2b8; /* Info blue for load */
+    color: white;
+}
+#toolbar button#load-setup-btn:hover {
+    background-color: #138496;
+}
+
+#toolbar button#clear-saved-setup-btn {
+    background-color: #ffc107; /* Warning yellow for clear saved */
+    color: #212529; /* Dark text for better contrast on yellow */
+}
+#toolbar button#clear-saved-setup-btn:hover {
+    background-color: #e0a800;
+}
