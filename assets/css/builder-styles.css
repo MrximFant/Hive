@@ -306,6 +306,12 @@ body.builder-page { /* Add class="builder-page" to your <body> tag in builder.ht
     border-top: 1px solid rgba(255,255,255,0.2); /* Subtle top border */
 }
 
+/* --- Specific Style to HIDE Text Overlay for BASE Items --- */
+.placed-item-text-overlay.base-item-text-overlay {
+    display: none;
+}
+
+
 /* --- Styling for Distance Calculation Selection --- */
 .placed-item-on-grid.selected-for-distance-1 {
     outline: 3px solid dodgerblue;
