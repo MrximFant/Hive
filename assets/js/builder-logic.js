@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const tileSizeValueDisplay = document.getElementById('tile-size-value');
     const gridDimensionsDisplay = document.getElementById('grid-dimensions-display');
     const clearAllBtn = document.getElementById('clear-all-btn');
-    const newAllianceNameInput = document.getElementById('new-alliance-name'); // Keep if manual add is desired
-    const addAllianceBtn = document.getElementById('add-alliance-btn'); // Keep if manual add is desired
+    const newAllianceNameInput = document.getElementById('new-alliance-name');
+    const addAllianceBtn = document.getElementById('add-alliance-btn');
     const allianceListUl = document.getElementById('alliance-list');
     const currentAllianceDisplay = document.getElementById('current-alliance-display');
     const distanceDisplay = document.getElementById('distance-display');
@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tileSizeSlider.value = currentTileSize;
         tileSizeValueDisplay.textContent = `${currentTileSize}px`;
+        if (document.documentElement.style.setProperty) { // For CSS var --current-tile-size if used
+            document.documentElement.style.setProperty('--current-tile-size', `${currentTileSize}px`);
+        }
         updateGridAppearance();
         currentAllianceDisplay.textContent = selectedAllianceName;
         distanceDisplay.textContent = "Distance: N/A";
@@ -64,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tileSizeSlider.addEventListener('input', handleTileSizeChange);
         clearAllBtn.addEventListener('click', handleClearAll);
 
-        if (addAllianceBtn && newAllianceNameInput) { // If manual add elements exist
+        if (addAllianceBtn && newAllianceNameInput) {
             addAllianceBtn.addEventListener('click', handleAddAllianceManual);
             newAllianceNameInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') handleAddAllianceManual();
@@ -139,8 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             width: itemWidth,
             height: itemHeight,
             name: target.dataset.name || 'Unnamed Item',
-            // For 'base', imageSrc is determined on drop. For others, it's from data-attribute.
-            imageSrc: (target.dataset.itemId === 'base') ? null : target.dataset.imageSrc,
+            imageSrc: target.dataset.imageSrc, // Use the src from data-attribute (could be generic for base)
         };
         target.style.opacity = '0.5';
         event.dataTransfer.effectAllowed = 'copy';
@@ -151,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedItemData = null;
     }
 
-// --- ITEM PLACEMENT & MOVEMENT ON GRID ---
+    // --- ITEM PLACEMENT & MOVEMENT ON GRID ---
     function addPlacedItemToGrid(mapId, itemData, gridX, gridY, isMoving = false, existingItemToUpdate = null) {
         let currentItem;
         let itemElement;
@@ -175,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 mapElements[mapId].appendChild(itemElement);
             }
 
+            // Ensure the class is correct on the text overlay for moved items
             textOverlay = itemElement.querySelector('.placed-item-text-overlay');
             if (textOverlay) {
                 if (currentItem.itemId === 'base') {
@@ -188,18 +191,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             // --- Logic for PLACING A NEW item (from sidebar) OR LOADING a saved item ---
-            const uniqueId = nextPlacedItemId++; // Assign new ID for new/loaded for simplicity now
+            const uniqueId = nextPlacedItemId++;
 
             let finalImageSrc;
             let finalAllianceName;
 
-            // Check if itemData has properties typical of a loaded item (like its own allianceName)
-            // The `itemData` for a new item from the sidebar (`draggedItemData`) will NOT have `itemData.allianceName` defined.
-            // The `itemData` for a loaded item (`itemDataToLoad`) WILL have `itemData.allianceName` defined.
+            // Distinguish between a new item from sidebar and a loaded item
+            // `itemData` is `draggedItemData` for new items, `itemDataToLoad` for loaded items.
+            // `draggedItemData` won't have its own `allianceName` property set yet.
+            // `itemDataToLoad` (from save file) WILL have `allianceName` and specific `imageSrc`.
             if (itemData.hasOwnProperty('allianceName') && itemData.allianceName !== undefined) {
-                // This is likely a LOADED item or an item being recreated with full data
+                // This is a LOADED item (or an item being recreated with its full data)
                 finalAllianceName = itemData.allianceName;
-                finalImageSrc = itemData.imageSrc; // Use the imageSrc directly as it's already specific (e.g., baseblue.jpg)
+                finalImageSrc = itemData.imageSrc; // Use the imageSrc directly as it's already specific
             } else {
                 // This is a NEW item from the sidebar
                 finalAllianceName = selectedAllianceName; // Use the currently selected alliance in the UI
@@ -207,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const colorForBase = alliances[finalAllianceName] || "neutral";
                     finalImageSrc = `assets/images/base${colorForBase}.jpg`;
                 } else {
-                    finalImageSrc = itemData.imageSrc; // Use the generic image from sidebar data
+                    finalImageSrc = itemData.imageSrc; // Use the generic image from sidebar data-attribute
                 }
             }
 
@@ -220,8 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 height: itemData.height,
                 itemId: itemData.itemId,
                 name: itemData.name,
-                imageSrc: finalImageSrc,     // Use the correctly determined image source
-                allianceName: finalAllianceName, // Use the correctly determined alliance name
+                imageSrc: finalImageSrc,
+                allianceName: finalAllianceName,
                 element: null
             };
 
@@ -252,9 +256,9 @@ document.addEventListener('DOMContentLoaded', () => {
             itemElement.appendChild(img);
 
             textOverlay = document.createElement('div'); // Create new overlay
-            textOverlay.classList.add('placed-item-text-overlay');
+            textOverlay.classList.add('placed-item-text-overlay'); // Add general class
 
-            // ** THIS IS WHERE THE CLASS FOR HIDING IS ADDED **
+            // ** ADD THE SPECIFIC CLASS FOR BASE ITEMS HERE **
             if (currentItem.itemId === 'base') {
                 textOverlay.classList.add('base-item-text-overlay');
             }
@@ -265,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 overlayTextContent += ` (${currentItem.allianceName})`;
             }
             textOverlay.textContent = overlayTextContent;
-            itemElement.appendChild(textOverlay);
+            itemElement.appendChild(textOverlay); // Append textOverlay to itemElement
 
             itemElement.title = `Item: ${currentItem.name}\nAlliance: ${currentItem.allianceName}\nCoords: (${gridX},${gridY}) on Map ${mapId}\nDrag to move. Drag to sidebar to remove. Click for distance.`;
             currentItem.element = itemElement;
@@ -290,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function removePlacedItem(placedId) {
         const itemIndex = placedItems.findIndex(p => p.id === placedId);
         if (itemIndex > -1) {
-            // ... (rest of removePlacedItem logic as before, including distance calc reset) ...
             const itemToRemove = placedItems[itemIndex];
             if (itemToRemove.element && itemToRemove.element.parentNode) {
                 itemToRemove.element.parentNode.removeChild(itemToRemove.element);
@@ -304,9 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- DRAG AND DROP HANDLERS (largely same as before) ---
     function handlePlacedItemDragStart(event) {
-        // ... (same as before) ...
         event.stopPropagation();
         const placedId = parseInt(event.currentTarget.dataset.placedId);
         const item = placedItems.find(p => p.id === placedId);
@@ -318,19 +319,20 @@ document.addEventListener('DOMContentLoaded', () => {
             event.dataTransfer.effectAllowed = 'move';
         }
     }
+
     function handlePlacedItemDragEnd(event) {
-        // ... (same as before) ...
         event.currentTarget.style.opacity = '1';
+        // draggedPlacedItemData is cleared on successful drop (handleMapDrop/handleSidebarDrop)
     }
+
     function handleMapDragOver(event) {
-        // ... (same as before) ...
         if (draggedItemData || draggedPlacedItemData) {
             event.preventDefault();
             event.dataTransfer.dropEffect = (draggedItemData) ? "copy" : "move";
         }
     }
+
     function handleMapDrop(event) {
-        // ... (same as before, boundary and collision checks are crucial) ...
         event.preventDefault();
         const targetMapElement = event.currentTarget;
         const targetMapId = parseInt(targetMapElement.dataset.mapId);
@@ -371,24 +373,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isMovingExisting) {
             const itemToUpdate = placedItems.find(p => p.id === draggedPlacedItemData.id);
             if (itemToUpdate) addPlacedItemToGrid(targetMapId, null, gridCellX, gridCellY, true, itemToUpdate);
-        } else {
+        } else { // New item from sidebar
             addPlacedItemToGrid(targetMapId, draggedItemData, gridCellX, gridCellY);
         }
         draggedPlacedItemData = null; draggedItemData = null;
     }
 
-    // --- SIDEBAR DROP (DELETE ITEM) HANDLERS (same as before) ---
-    function handleSidebarDragOver(event) { /* ... same ... */
+    function handleSidebarDragOver(event) {
         if (draggedPlacedItemData) {
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
             sidebarElement.classList.add('drag-over-delete');
         }
     }
-    function handleSidebarDragLeave() { /* ... same ... */
+    function handleSidebarDragLeave() {
         sidebarElement.classList.remove('drag-over-delete');
     }
-    function handleSidebarDrop(event) { /* ... same ... */
+    function handleSidebarDrop(event) {
         event.preventDefault();
         sidebarElement.classList.remove('drag-over-delete');
         if (draggedPlacedItemData) {
@@ -397,33 +398,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- ALLIANCE FUNCTIONS (Revised) ---
     function promptAndSetupAlliances() {
-        alliances = { "Neutral": "neutral" }; // "Neutral" always exists, maps to "neutral" color for base image
-        availableColors = [...ALLIANCE_COLORS]; // Reset available colors
+        alliances = { "Neutral": "neutral" };
+        availableColors = [...ALLIANCE_COLORS];
 
         alert(`Please enter up to ${MAX_CUSTOM_ALLIANCES} alliance tags. Each will be assigned a unique color for their base.`);
         let customAllianceCount = 0;
         while (customAllianceCount < MAX_CUSTOM_ALLIANCES && availableColors.length > 0) {
             const name = prompt(`Enter name for Alliance ${customAllianceCount + 1} (or leave blank/cancel to stop):`);
             if (name === null || name.trim() === "") break;
-
             const trimmedName = name.trim();
             if (trimmedName && !alliances.hasOwnProperty(trimmedName)) {
-                const assignedColor = availableColors.shift(); // Take the next available color
+                const assignedColor = availableColors.shift();
                 alliances[trimmedName] = assignedColor;
                 customAllianceCount++;
             } else if (alliances.hasOwnProperty(trimmedName)) {
                 alert(`Alliance "${trimmedName}" already entered. Skipping.`);
-            } else {
-                // Empty name after trim, do nothing, loop continues
             }
         }
-        // Set initial selected alliance
         const allianceNames = Object.keys(alliances);
-        if (allianceNames.length > 1 && allianceNames[0] === "Neutral") {
+        if (allianceNames.length > 1 && allianceNames[0] === "Neutral" && alliances.hasOwnProperty(allianceNames[1])) {
             selectedAllianceName = allianceNames[1];
-        } else if (allianceNames.length > 0 && allianceNames[0] !== "Neutral") {
+        } else if (allianceNames.length > 0 && allianceNames[0] !== "Neutral" && alliances.hasOwnProperty(allianceNames[0])) {
             selectedAllianceName = allianceNames[0];
         } else {
             selectedAllianceName = "Neutral";
@@ -432,17 +428,16 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAllianceList();
     }
 
-    function handleAddAllianceManual() { // If using the input field
-        if (Object.keys(alliances).length -1 >= MAX_CUSTOM_ALLIANCES || availableColors.length === 0) { // -1 for Neutral
+    function handleAddAllianceManual() {
+        if (Object.keys(alliances).length -1 >= MAX_CUSTOM_ALLIANCES || availableColors.length === 0) {
             alert(`Cannot add more alliances. Max ${MAX_CUSTOM_ALLIANCES} custom alliances reached or no more colors available.`);
             return;
         }
         const name = newAllianceNameInput.value.trim();
         if (name && !alliances.hasOwnProperty(name)) {
             const assignedColor = availableColors.shift();
-            if (!assignedColor) { // Should not happen if previous check is correct
-                alert("No more unique colors available for new alliances.");
-                return;
+            if (!assignedColor) {
+                alert("No more unique colors available for new alliances."); return;
             }
             alliances[name] = assignedColor;
             newAllianceNameInput.value = '';
@@ -456,29 +451,22 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const name in alliances) {
             const li = document.createElement('li');
             li.dataset.allianceName = name;
-
             const colorSwatch = document.createElement('span');
             colorSwatch.className = 'color-swatch';
-            // Use the alliance's color to set swatch background
-            // This requires a mapping from color name (e.g., "blue") to actual CSS color value for the swatch
-            const colorValue = getColorValueForSwatch(alliances[name]); // Helper function needed
+            const colorValue = getColorValueForSwatch(alliances[name]);
             colorSwatch.style.backgroundColor = colorValue;
             li.appendChild(colorSwatch);
-
             const nameSpan = document.createElement('span');
             nameSpan.className = 'alliance-name-span';
             nameSpan.textContent = name;
             li.appendChild(nameSpan);
-
             if (name === selectedAllianceName) li.classList.add('selected');
-
             li.addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-alliance-btn') || e.target.parentNode.classList.contains('delete-alliance-btn')) return;
                 selectedAllianceName = name;
                 currentAllianceDisplay.textContent = selectedAllianceName;
                 renderAllianceList();
             });
-
             if (name !== "Neutral") {
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '×';
@@ -495,39 +483,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getColorValueForSwatch(colorName) {
-        // Simple map for swatch display. Adjust actual colors as needed.
         const colorMap = {
             "blue": "#3498db", "brown": "#8B4513", "green": "#2ecc71",
             "orange": "#e67e22", "purple": "#8e44ad", "red": "#e74c3c",
             "white": "#ecf0f1", "yellow": "#f1c40f", "black": "#34495e",
-            "neutral": "#bdc3c7" // Color for Neutral swatch
+            "neutral": "#bdc3c7"
         };
-        return colorMap[colorName.toLowerCase()] || '#ccc'; // Fallback
+        return colorMap[colorName.toLowerCase()] || '#ccc';
     }
 
     function deleteAlliance(nameToDelete) {
-        if (nameToDelete === "Neutral") return; // Cannot delete Neutral
-
+        if (nameToDelete === "Neutral") return;
         const colorToReturn = alliances[nameToDelete];
         delete alliances[nameToDelete];
         if (colorToReturn && !availableColors.includes(colorToReturn)) {
-            availableColors.push(colorToReturn); // Make color available again
-            availableColors.sort(); // Optional: keep it sorted
+            availableColors.push(colorToReturn);
+            availableColors.sort();
         }
-
         placedItems.forEach(item => {
             if (item.allianceName === nameToDelete) {
                 item.allianceName = "Neutral";
-                if (item.itemId === 'base') { // If it's a base, its image needs to change
+                if (item.itemId === 'base') {
                     item.imageSrc = 'assets/images/baseneutral.jpg';
                     if (item.element) {
                         const imgElement = item.element.querySelector('img');
                         if (imgElement) imgElement.src = item.imageSrc;
                     }
                 }
-                if (item.element) { // Update text overlay for all items
+                if (item.element) {
                     const textOverlay = item.element.querySelector('.placed-item-text-overlay');
-                    if (textOverlay) textOverlay.textContent = `${item.name}`; // Remove old alliance from display
+                    if (textOverlay) textOverlay.textContent = `${item.name}`;
                     item.element.title = `Item: ${item.name}\nAlliance: Neutral\nCoords: (${item.x},${item.y}) on Map ${item.mapId}\nDrag to move. Drag to sidebar to remove. Click for distance.`;
                 }
             }
@@ -539,13 +524,16 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAllianceList();
     }
 
-    // --- TOOLBAR ACTIONS (same as before) ---
-    function handleTileSizeChange(event) { /* ... same ... */
+    function handleTileSizeChange(event) {
         currentTileSize = parseInt(event.target.value);
         tileSizeValueDisplay.textContent = `${currentTileSize}px`;
+        if (document.documentElement.style.setProperty) { // For CSS var --current-tile-size
+            document.documentElement.style.setProperty('--current-tile-size', `${currentTileSize}px`);
+        }
         updateGridAppearance();
     }
-    function handleClearAll() { /* ... same ... */
+
+    function handleClearAll() {
         if (confirm('Sure you want to clear ALL items?')) {
             placedItems.forEach(item => {
                 if (item.element && item.element.parentNode) {
@@ -556,14 +544,14 @@ document.addEventListener('DOMContentLoaded', () => {
             nextPlacedItemId = 0;
             if (firstSelectedItemForDistance && firstSelectedItemForDistance.element) {
                 firstSelectedItemForDistance.element.classList.remove('selected-for-distance-1');
+                document.querySelectorAll('.selected-for-distance-2').forEach(el => el.classList.remove('selected-for-distance-2'));
             }
             firstSelectedItemForDistance = null;
             distanceDisplay.textContent = "Distance: N/A";
         }
     }
 
-    // --- DISTANCE CALCULATION (same as before) ---
-    function handlePlacedItemClickForDistance(event) { /* ... same as previous full version ... */
+    function handlePlacedItemClickForDistance(event) {
         event.stopPropagation();
         const clickedPlacedId = parseInt(event.currentTarget.dataset.placedId);
         const clickedItem = placedItems.find(p => p.id === clickedPlacedId);
@@ -599,167 +587,115 @@ document.addEventListener('DOMContentLoaded', () => {
             distanceDisplay.textContent = distText;
             setTimeout(() => {
                 if (firstSelectedItemForDistance && firstSelectedItemForDistance.element) firstSelectedItemForDistance.element.classList.remove('selected-for-distance-1');
-                if (secondItem.element) secondItem.element.classList.remove('selected-for-distance-2');
+                if (secondItem.element && secondItem.element.classList.contains('selected-for-distance-2')) secondItem.element.classList.remove('selected-for-distance-2');
                 firstSelectedItemForDistance = null;
             }, 3000);
         }
     }
 
+    const LOCAL_STORAGE_KEY = 'mapBuilderSetup_v1';
 
-    // --- SAVE/LOAD/CLEAR FUNCTIONS ---
-const LOCAL_STORAGE_KEY = 'mapBuilderSetup_v1'; // Use a versioned key
-
-function handleSaveSetup() {
-    if (typeof(Storage) === "undefined") {
-        alert("Sorry, your browser does not support Local Storage. Cannot save setup.");
-        return;
-    }
-    try {
-        const setupToSave = {
-            placedItemsData: placedItems.map(item => ({
-                mapId: item.mapId,
-                x: item.x, y: item.y,
-                width: item.width, height: item.height,
-                itemId: item.itemId, name: item.name,
-                imageSrc: item.imageSrc,
-                allianceName: item.allianceName
-            })),
-            alliancesData: alliances,
-            selectedAllianceNameData: selectedAllianceName,
-            currentTileSizeData: currentTileSize,
-            nextPlacedItemIdData: nextPlacedItemId,
-            availableColorsData: availableColors // Save this too
-        };
-        const jsonDataString = JSON.stringify(setupToSave);
-        localStorage.setItem(LOCAL_STORAGE_KEY, jsonDataString);
-        alert('Setup saved successfully to this browser!');
-    } catch (error) {
-        console.error("Error saving to Local Storage:", error);
-        alert("Error saving setup. The setup might be too large or an unexpected error occurred.");
-    }
-}
-
-function handleLoadSetup() {
-    if (typeof(Storage) === "undefined") {
-        alert("Sorry, your browser does not support Local Storage. Cannot load setup.");
-        return;
-    }
-    const savedDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!savedDataString) {
-        alert('No saved setup found in this browser.');
-        return;
+    function handleSaveSetup() {
+        if (typeof(Storage) === "undefined") {
+            alert("Sorry, your browser does not support Local Storage. Cannot save setup."); return;
+        }
+        try {
+            const setupToSave = {
+                placedItemsData: placedItems.map(item => ({
+                    mapId: item.mapId, x: item.x, y: item.y, width: item.width, height: item.height,
+                    itemId: item.itemId, name: item.name, imageSrc: item.imageSrc, allianceName: item.allianceName
+                })),
+                alliancesData: alliances, selectedAllianceNameData: selectedAllianceName,
+                currentTileSizeData: currentTileSize, nextPlacedItemIdData: nextPlacedItemId,
+                availableColorsData: availableColors
+            };
+            const jsonDataString = JSON.stringify(setupToSave);
+            localStorage.setItem(LOCAL_STORAGE_KEY, jsonDataString);
+            alert('Setup saved successfully to this browser!');
+        } catch (error) {
+            console.error("Error saving to Local Storage:", error);
+            alert("Error saving setup. The setup might be too large or an unexpected error occurred.");
+        }
     }
 
-    if (!confirm("Loading a saved setup will overwrite your current work. Continue?")) {
-        return;
-    }
-
-    try {
-        const savedData = JSON.parse(savedDataString);
-
-        // 1. Clear current visual setup & critical state
-        placedItems.forEach(item => {
-            if (item.element && item.element.parentNode) {
-                item.element.parentNode.removeChild(item.element);
-            }
-        });
-        placedItems = [];
-        if (firstSelectedItemForDistance && firstSelectedItemForDistance.element) {
-            firstSelectedItemForDistance.element.classList.remove('selected-for-distance-1');
-            document.querySelectorAll('.selected-for-distance-2').forEach(el => el.classList.remove('selected-for-distance-2'));
+    function handleLoadSetup() {
+        if (typeof(Storage) === "undefined") {
+            alert("Sorry, your browser does not support Local Storage. Cannot load setup."); return;
         }
-        firstSelectedItemForDistance = null;
-        distanceDisplay.textContent = "Distance: N/A";
-
-        // 2. Restore alliances and related state
-        if (savedData.alliancesData) {
-            alliances = savedData.alliancesData;
-        } else {
-            alliances = { "Neutral": "neutral" }; // Default if not in saved data
+        const savedDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (!savedDataString) {
+            alert('No saved setup found in this browser.'); return;
         }
+        if (!confirm("Loading a saved setup will overwrite your current work. Continue?")) return;
 
-        if (savedData.availableColorsData) { // Restore availableColors
-            availableColors = savedData.availableColorsData;
-        } else { // Recalculate if not saved (older save format perhaps)
-            availableColors = [...ALLIANCE_COLORS];
-            for (const allianceName in alliances) {
-                if (allianceName !== "Neutral") {
-                    const colorIndex = availableColors.indexOf(alliances[allianceName]);
-                    if (colorIndex > -1) {
-                        availableColors.splice(colorIndex, 1);
-                    }
-                }
-            }
-        }
-        renderAllianceList();
-
-        if (savedData.selectedAllianceNameData && alliances.hasOwnProperty(savedData.selectedAllianceNameData)) {
-            selectedAllianceName = savedData.selectedAllianceNameData;
-        } else { // Fallback if saved selected alliance no longer exists
-            const allianceNames = Object.keys(alliances);
-            selectedAllianceName = allianceNames.length > 0 ? allianceNames[0] : "Neutral";
-        }
-        currentAllianceDisplay.textContent = selectedAllianceName;
-
-        // 3. Restore tile size
-        if (savedData.currentTileSizeData) {
-            currentTileSize = savedData.currentTileSizeData;
-            tileSizeSlider.value = currentTileSize;
-            tileSizeValueDisplay.textContent = `${currentTileSize}px`;
-            if (document.documentElement.style.setProperty) { // If you use CSS var for font size
-                 document.documentElement.style.setProperty('--current-tile-size', `${currentTileSize}px`);
-            }
-            updateGridAppearance();
-        }
-
-        // 4. Restore placed items
-        // Ensure nextPlacedItemId is restored BEFORE adding items if new items might get created with old IDs
-         if (savedData.nextPlacedItemIdData !== undefined) { // Check for undefined to allow 0
-            nextPlacedItemId = savedData.nextPlacedItemIdData;
-        } else {
-            nextPlacedItemId = 0; // Fallback
-        }
-
-        if (savedData.placedItemsData && Array.isArray(savedData.placedItemsData)) {
-            savedData.placedItemsData.forEach(itemDataToLoad => {
-                // The `itemDataToLoad` object contains all necessary fields
-                // `addPlacedItemToGrid` needs to be robust enough to handle this directly
-                // It expects (mapId, itemData, gridX, gridY)
-                // When loading, itemDataToLoad.mapId, itemDataToLoad.x, itemDataToLoad.y are the source of truth.
-                // The second argument to addPlacedItemToGrid (itemData) is the full object.
-                addPlacedItemToGrid(
-                    itemDataToLoad.mapId,
-                    itemDataToLoad, // This is the object like {itemId: "base", name: "Base", width:3, ...}
-                    itemDataToLoad.x,
-                    itemDataToLoad.y
-                );
+        try {
+            const savedData = JSON.parse(savedDataString);
+            placedItems.forEach(item => {
+                if (item.element && item.element.parentNode) item.element.parentNode.removeChild(item.element);
             });
+            placedItems = [];
+            if (firstSelectedItemForDistance && firstSelectedItemForDistance.element) {
+                firstSelectedItemForDistance.element.classList.remove('selected-for-distance-1');
+                document.querySelectorAll('.selected-for-distance-2').forEach(el => el.classList.remove('selected-for-distance-2'));
+            }
+            firstSelectedItemForDistance = null;
+            distanceDisplay.textContent = "Distance: N/A";
+
+            alliances = savedData.alliancesData || { "Neutral": "neutral" };
+            availableColors = savedData.availableColorsData || (() => {
+                let tempColors = [...ALLIANCE_COLORS];
+                for (const name in alliances) if (name !== "Neutral") {
+                    const idx = tempColors.indexOf(alliances[name]);
+                    if (idx > -1) tempColors.splice(idx, 1);
+                }
+                return tempColors;
+            })();
+            renderAllianceList();
+
+            selectedAllianceName = (savedData.selectedAllianceNameData && alliances.hasOwnProperty(savedData.selectedAllianceNameData)) ?
+                savedData.selectedAllianceNameData : (Object.keys(alliances)[0] || "Neutral");
+            currentAllianceDisplay.textContent = selectedAllianceName;
+
+            if (savedData.currentTileSizeData) {
+                currentTileSize = savedData.currentTileSizeData;
+                tileSizeSlider.value = currentTileSize;
+                tileSizeValueDisplay.textContent = `${currentTileSize}px`;
+                if (document.documentElement.style.setProperty) {
+                     document.documentElement.style.setProperty('--current-tile-size', `${currentTileSize}px`);
+                }
+                updateGridAppearance();
+            }
+
+            nextPlacedItemId = savedData.nextPlacedItemIdData !== undefined ? savedData.nextPlacedItemIdData : 0;
+
+            if (savedData.placedItemsData && Array.isArray(savedData.placedItemsData)) {
+                savedData.placedItemsData.forEach(itemDataToLoad => {
+                    addPlacedItemToGrid(
+                        itemDataToLoad.mapId, itemDataToLoad,
+                        itemDataToLoad.x, itemDataToLoad.y
+                    );
+                });
+            }
+            alert('Setup loaded successfully!');
+        } catch (error) {
+            console.error("Error loading from Local Storage:", error);
+            alert("Error loading setup. Data might be corrupted or in an old format.");
         }
-
-
-        alert('Setup loaded successfully!');
-    } catch (error) {
-        console.error("Error loading from Local Storage:", error);
-        alert("Error loading setup. Data might be corrupted or in an old format.");
     }
-}
 
-function handleClearSavedSetup() {
-    if (typeof(Storage) === "undefined") {
-        alert("Sorry, your browser does not support Local Storage.");
-        return;
-    }
-    if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
-        if (confirm("Are you sure you want to delete the saved setup from this browser? This cannot be undone.")) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-            alert("Saved setup cleared from this browser.");
+    function handleClearSavedSetup() {
+        if (typeof(Storage) === "undefined") {
+            alert("Sorry, your browser does not support Local Storage."); return;
         }
-    } else {
-        alert("No saved setup found to clear.");
+        if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
+            if (confirm("Are you sure you want to delete the saved setup from this browser? This cannot be undone.")) {
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                alert("Saved setup cleared from this browser.");
+            }
+        } else {
+            alert("No saved setup found to clear.");
+        }
     }
-}
 
-    
-    // --- START THE APPLICATION ---
     init();
 });
