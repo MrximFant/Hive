@@ -151,47 +151,82 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedItemData = null;
     }
 
-    // --- ITEM PLACEMENT & MOVEMENT ON GRID ---
+// --- ITEM PLACEMENT & MOVEMENT ON GRID ---
     function addPlacedItemToGrid(mapId, itemData, gridX, gridY, isMoving = false, existingItemToUpdate = null) {
         let currentItem;
         let itemElement;
+        let textOverlay; // Declare here for broader scope
 
         if (isMoving && existingItemToUpdate) {
+            // --- Logic for MOVING an EXISTING item ---
             currentItem = existingItemToUpdate;
             itemElement = currentItem.element;
+
             const oldMapId = currentItem.mapId;
             currentItem.mapId = mapId;
             currentItem.x = gridX;
             currentItem.y = gridY;
+
             itemElement.style.left = `${gridX * currentTileSize}px`;
             itemElement.style.top = `${gridY * currentTileSize}px`;
             itemElement.style.opacity = '1';
+
             if (oldMapId !== mapId && mapElements[mapId]) {
                 mapElements[mapId].appendChild(itemElement);
             }
-        } else {
-            const uniqueId = nextPlacedItemId++;
-            let actualImageSrc = itemData.imageSrc; // From sidebar item
-            let itemAllianceName = selectedAllianceName;
 
-            if (itemData.itemId === 'base') {
-                const colorForBase = alliances[itemAllianceName] || "neutral"; // Default to neutral if alliance not found
-                actualImageSrc = `assets/images/base${colorForBase}.jpg`;
+            textOverlay = itemElement.querySelector('.placed-item-text-overlay');
+            if (textOverlay) {
+                if (currentItem.itemId === 'base') {
+                    if (!textOverlay.classList.contains('base-item-text-overlay')) {
+                        textOverlay.classList.add('base-item-text-overlay');
+                    }
+                } else {
+                    textOverlay.classList.remove('base-item-text-overlay');
+                }
             }
 
+        } else {
+            // --- Logic for PLACING A NEW item (from sidebar) OR LOADING a saved item ---
+            const uniqueId = nextPlacedItemId++; // Assign new ID for new/loaded for simplicity now
+
+            let finalImageSrc;
+            let finalAllianceName;
+
+            // Check if itemData has properties typical of a loaded item (like its own allianceName)
+            // The `itemData` for a new item from the sidebar (`draggedItemData`) will NOT have `itemData.allianceName` defined.
+            // The `itemData` for a loaded item (`itemDataToLoad`) WILL have `itemData.allianceName` defined.
+            if (itemData.hasOwnProperty('allianceName') && itemData.allianceName !== undefined) {
+                // This is likely a LOADED item or an item being recreated with full data
+                finalAllianceName = itemData.allianceName;
+                finalImageSrc = itemData.imageSrc; // Use the imageSrc directly as it's already specific (e.g., baseblue.jpg)
+            } else {
+                // This is a NEW item from the sidebar
+                finalAllianceName = selectedAllianceName; // Use the currently selected alliance in the UI
+                if (itemData.itemId === 'base') {
+                    const colorForBase = alliances[finalAllianceName] || "neutral";
+                    finalImageSrc = `assets/images/base${colorForBase}.jpg`;
+                } else {
+                    finalImageSrc = itemData.imageSrc; // Use the generic image from sidebar data
+                }
+            }
 
             currentItem = {
-                id: uniqueId, mapId: mapId, x: gridX, y: gridY,
-                width: itemData.width, height: itemData.height,
-                itemId: itemData.itemId, name: itemData.name,
-                imageSrc: actualImageSrc, // Use the determined imageSrc
-                allianceName: itemAllianceName,
+                id: uniqueId,
+                mapId: mapId,
+                x: gridX,
+                y: gridY,
+                width: itemData.width,
+                height: itemData.height,
+                itemId: itemData.itemId,
+                name: itemData.name,
+                imageSrc: finalImageSrc,     // Use the correctly determined image source
+                allianceName: finalAllianceName, // Use the correctly determined alliance name
                 element: null
             };
 
             itemElement = document.createElement('div');
             itemElement.classList.add('placed-item-on-grid');
-            // ... (set styles for position and size as before) ...
             itemElement.style.left = `${currentItem.x * currentTileSize}px`;
             itemElement.style.top = `${currentItem.y * currentTileSize}px`;
             itemElement.style.width = `${currentItem.width * currentTileSize}px`;
@@ -200,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
             itemElement.dataset.placedId = uniqueId;
 
             const img = document.createElement('img');
-            img.src = currentItem.imageSrc; // This is now specific, e.g., assets/images/baseblue.jpg
+            img.src = currentItem.imageSrc;
             img.alt = currentItem.name;
-            img.onerror = function() { /* ... error handling as before ... */
+            img.onerror = function() {
                 this.style.display = 'none';
                 const parentDiv = this.parentNode;
                 if (parentDiv) {
@@ -214,11 +249,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 console.warn(`Image not loaded: ${this.src} for ${currentItem.name}`);
             };
-            // No hue rotation needed anymore for base items
             itemElement.appendChild(img);
 
-            const textOverlay = document.createElement('div');
+            textOverlay = document.createElement('div'); // Create new overlay
             textOverlay.classList.add('placed-item-text-overlay');
+
+            // ** THIS IS WHERE THE CLASS FOR HIDING IS ADDED **
+            if (currentItem.itemId === 'base') {
+                textOverlay.classList.add('base-item-text-overlay');
+            }
+            // ** END CLASS ADDITION **
+
             let overlayTextContent = `${currentItem.name}`;
             if (currentItem.allianceName && currentItem.allianceName !== "Neutral") {
                 overlayTextContent += ` (${currentItem.allianceName})`;
@@ -229,10 +270,15 @@ document.addEventListener('DOMContentLoaded', () => {
             itemElement.title = `Item: ${currentItem.name}\nAlliance: ${currentItem.allianceName}\nCoords: (${gridX},${gridY}) on Map ${mapId}\nDrag to move. Drag to sidebar to remove. Click for distance.`;
             currentItem.element = itemElement;
             placedItems.push(currentItem);
-            if (mapElements[mapId]) mapElements[mapId].appendChild(itemElement);
-            else console.error("Target map element not found for mapId:", mapId);
+
+            if (mapElements[mapId]) {
+                mapElements[mapId].appendChild(itemElement);
+            } else {
+                console.error("Target map element not found for mapId:", mapId);
+            }
         }
 
+        // Event listeners apply to both new and moved items
         itemElement.removeEventListener('dragstart', handlePlacedItemDragStart);
         itemElement.addEventListener('dragstart', handlePlacedItemDragStart);
         itemElement.removeEventListener('dragend', handlePlacedItemDragEnd);
