@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const allianceListUl = document.getElementById('alliance-list');
     const currentAllianceDisplay = document.getElementById('current-alliance-display');
     const distanceDisplay = document.getElementById('distance-display');
+    const saveSetupBtn = document.getElementById('save-setup-btn');
+    const loadSetupBtn = document.getElementById('load-setup-btn');
+    const clearSavedSetupBtn = document.getElementById('clear-saved-setup-btn');
 
     // --- STATE ---
     let draggedItemData = null;
@@ -71,6 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebarElement.addEventListener('dragover', handleSidebarDragOver);
         sidebarElement.addEventListener('dragleave', handleSidebarDragLeave);
         sidebarElement.addEventListener('drop', handleSidebarDrop);
+
+        if (saveSetupBtn) saveSetupBtn.addEventListener('click', handleSaveSetup);
+        if (loadSetupBtn) loadSetupBtn.addEventListener('click', handleLoadSetup);
+        if (clearSavedSetupBtn) clearSavedSetupBtn.addEventListener('click', handleClearSavedSetup);
     }
 
     // --- MAP/GRID FUNCTIONS ---
@@ -552,6 +559,161 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+    // --- SAVE/LOAD/CLEAR FUNCTIONS ---
+const LOCAL_STORAGE_KEY = 'mapBuilderSetup_v1'; // Use a versioned key
+
+function handleSaveSetup() {
+    if (typeof(Storage) === "undefined") {
+        alert("Sorry, your browser does not support Local Storage. Cannot save setup.");
+        return;
+    }
+    try {
+        const setupToSave = {
+            placedItemsData: placedItems.map(item => ({
+                mapId: item.mapId,
+                x: item.x, y: item.y,
+                width: item.width, height: item.height,
+                itemId: item.itemId, name: item.name,
+                imageSrc: item.imageSrc,
+                allianceName: item.allianceName
+            })),
+            alliancesData: alliances,
+            selectedAllianceNameData: selectedAllianceName,
+            currentTileSizeData: currentTileSize,
+            nextPlacedItemIdData: nextPlacedItemId,
+            availableColorsData: availableColors // Save this too
+        };
+        const jsonDataString = JSON.stringify(setupToSave);
+        localStorage.setItem(LOCAL_STORAGE_KEY, jsonDataString);
+        alert('Setup saved successfully to this browser!');
+    } catch (error) {
+        console.error("Error saving to Local Storage:", error);
+        alert("Error saving setup. The setup might be too large or an unexpected error occurred.");
+    }
+}
+
+function handleLoadSetup() {
+    if (typeof(Storage) === "undefined") {
+        alert("Sorry, your browser does not support Local Storage. Cannot load setup.");
+        return;
+    }
+    const savedDataString = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!savedDataString) {
+        alert('No saved setup found in this browser.');
+        return;
+    }
+
+    if (!confirm("Loading a saved setup will overwrite your current work. Continue?")) {
+        return;
+    }
+
+    try {
+        const savedData = JSON.parse(savedDataString);
+
+        // 1. Clear current visual setup & critical state
+        placedItems.forEach(item => {
+            if (item.element && item.element.parentNode) {
+                item.element.parentNode.removeChild(item.element);
+            }
+        });
+        placedItems = [];
+        if (firstSelectedItemForDistance && firstSelectedItemForDistance.element) {
+            firstSelectedItemForDistance.element.classList.remove('selected-for-distance-1');
+            document.querySelectorAll('.selected-for-distance-2').forEach(el => el.classList.remove('selected-for-distance-2'));
+        }
+        firstSelectedItemForDistance = null;
+        distanceDisplay.textContent = "Distance: N/A";
+
+        // 2. Restore alliances and related state
+        if (savedData.alliancesData) {
+            alliances = savedData.alliancesData;
+        } else {
+            alliances = { "Neutral": "neutral" }; // Default if not in saved data
+        }
+
+        if (savedData.availableColorsData) { // Restore availableColors
+            availableColors = savedData.availableColorsData;
+        } else { // Recalculate if not saved (older save format perhaps)
+            availableColors = [...ALLIANCE_COLORS];
+            for (const allianceName in alliances) {
+                if (allianceName !== "Neutral") {
+                    const colorIndex = availableColors.indexOf(alliances[allianceName]);
+                    if (colorIndex > -1) {
+                        availableColors.splice(colorIndex, 1);
+                    }
+                }
+            }
+        }
+        renderAllianceList();
+
+        if (savedData.selectedAllianceNameData && alliances.hasOwnProperty(savedData.selectedAllianceNameData)) {
+            selectedAllianceName = savedData.selectedAllianceNameData;
+        } else { // Fallback if saved selected alliance no longer exists
+            const allianceNames = Object.keys(alliances);
+            selectedAllianceName = allianceNames.length > 0 ? allianceNames[0] : "Neutral";
+        }
+        currentAllianceDisplay.textContent = selectedAllianceName;
+
+        // 3. Restore tile size
+        if (savedData.currentTileSizeData) {
+            currentTileSize = savedData.currentTileSizeData;
+            tileSizeSlider.value = currentTileSize;
+            tileSizeValueDisplay.textContent = `${currentTileSize}px`;
+            if (document.documentElement.style.setProperty) { // If you use CSS var for font size
+                 document.documentElement.style.setProperty('--current-tile-size', `${currentTileSize}px`);
+            }
+            updateGridAppearance();
+        }
+
+        // 4. Restore placed items
+        // Ensure nextPlacedItemId is restored BEFORE adding items if new items might get created with old IDs
+         if (savedData.nextPlacedItemIdData !== undefined) { // Check for undefined to allow 0
+            nextPlacedItemId = savedData.nextPlacedItemIdData;
+        } else {
+            nextPlacedItemId = 0; // Fallback
+        }
+
+        if (savedData.placedItemsData && Array.isArray(savedData.placedItemsData)) {
+            savedData.placedItemsData.forEach(itemDataToLoad => {
+                // The `itemDataToLoad` object contains all necessary fields
+                // `addPlacedItemToGrid` needs to be robust enough to handle this directly
+                // It expects (mapId, itemData, gridX, gridY)
+                // When loading, itemDataToLoad.mapId, itemDataToLoad.x, itemDataToLoad.y are the source of truth.
+                // The second argument to addPlacedItemToGrid (itemData) is the full object.
+                addPlacedItemToGrid(
+                    itemDataToLoad.mapId,
+                    itemDataToLoad, // This is the object like {itemId: "base", name: "Base", width:3, ...}
+                    itemDataToLoad.x,
+                    itemDataToLoad.y
+                );
+            });
+        }
+
+
+        alert('Setup loaded successfully!');
+    } catch (error) {
+        console.error("Error loading from Local Storage:", error);
+        alert("Error loading setup. Data might be corrupted or in an old format.");
+    }
+}
+
+function handleClearSavedSetup() {
+    if (typeof(Storage) === "undefined") {
+        alert("Sorry, your browser does not support Local Storage.");
+        return;
+    }
+    if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
+        if (confirm("Are you sure you want to delete the saved setup from this browser? This cannot be undone.")) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            alert("Saved setup cleared from this browser.");
+        }
+    } else {
+        alert("No saved setup found to clear.");
+    }
+}
+
+    
     // --- START THE APPLICATION ---
     init();
 });
