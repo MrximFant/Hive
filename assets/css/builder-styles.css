@@ -34,6 +34,7 @@ body.builder-page { /* Add class="builder-page" to your <body> tag in builder.ht
     flex-direction: column; /* Toolbar on top, grid wrapper below */
     overflow: hidden; /* Prevent scrollbars on main-area itself */
     background-color: #e0e0e0; /* A slightly darker background for the main work area */
+    position: relative;
 }
 
 /* --- Buildable Items (Sidebar) --- */
@@ -321,4 +322,19 @@ body.builder-page { /* Add class="builder-page" to your <body> tag in builder.ht
 #sidebar.drag-over-delete {
     outline: 3px dashed #dc3545; /* Red dashed outline */
     background-color: #ffebee; /* Light red background */
+}
+
+
+/* --- Creator Note Styling --- */
+#creator-note {
+    position: absolute;   /* This makes it positionable within #main-area */
+    top: 5px;             /* Distance from the top edge of #main-area */
+    right: 10px;            /* Distance from the right edge of #main-area */
+    font-size: 0.75em;    /* Makes the font small (adjust as needed) */
+    color: #555555;       /* A dark grey color for the text (adjust as needed) */
+    background-color: rgba(255, 255, 255, 0.6); /* Optional: semi-transparent white background */
+    padding: 2px 5px;     /* Small padding around the text */
+    border-radius: 3px;   /* Slightly rounded corners for the background */
+    z-index: 100;         /* Ensures it sits on top of other direct children of #main-area if needed */
+    user-select: none;    /* Prevents the text from being easily selected by mouse drag */
 }
