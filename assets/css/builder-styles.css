@@ -294,7 +294,7 @@ body.builder-page { /* Add class="builder-page" to your <body> tag in builder.ht
     width: 100%;
     background-color: rgba(0, 0, 0, 0.65); /* Slightly more opaque */
     color: white;
-    font-size: clamp(0.5em, 1.3vw, 0.80em); /* Responsive font size */
+    font-size: clamp(0.4em, 1.2vw, 0.75em); /* Responsive font size */
     padding: 2px 4px;
     box-sizing: border-box;
     text-align: center;
