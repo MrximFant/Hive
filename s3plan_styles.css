@@ -1,0 +1,314 @@
+/* s3plan_styles.css */
+
+/* --- General Page Structure --- */
+body { /* Applied if s3plan.html's body doesn't have a more specific class from main style.css */
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f0f2f5; /* Light grey background for the whole page */
+    color: #333;
+    line-height: 1.6;
+}
+
+.s3plan-page-container {
+    margin: 0 auto;
+    padding: 0 20px; 
+    max-width: 1800px; /* Max width for overall page content */
+}
+
+.s3plan-header {
+    text-align: center;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dee2e6; 
+}
+.s3plan-header h1 {
+    margin: 0;
+    font-size: 2em;
+    color: #343a40;
+}
+.s3plan-header p a {
+    color: #007bff;
+    text-decoration: none;
+}
+.s3plan-header p a:hover {
+    text-decoration: underline;
+}
+
+
+.s3plan-main-content.container { /* .container class is used in HTML for the flex row */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens if needed */
+    background-color: #ffffff; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.075);
+    border-radius: 8px; /* Rounded corners for the main content block */
+    min-height: 75vh;
+    padding: 0; /* Remove padding if sidebar/map-viewport-container handle their own */
+}
+
+/* --- Sidebar Styles --- */
+#sidebar {
+    width: 300px; /* Slightly wider sidebar */
+    padding: 25px;
+    border-right: 1px solid #e9ecef;
+    background-color: #f8f9fa; /* Lighter sidebar bg */
+    flex-shrink: 0; 
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+#sidebar h2 {
+    margin-top: 0;
+    color: #495057;
+    font-size: 1.5em;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#alliance-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto; /* Scroll if many alliances */
+    flex-grow: 1; /* Allow list to take available space before instructions */
+}
+
+#alliance-list li {
+    /* Base styles are mostly set dynamically via JS for colors */
+    /* CSS here can set transitions, base padding/margin not tied to selection state */
+    padding: 10px 12px; 
+    margin-bottom: 8px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+#alliance-list li.selected {
+    /* font-weight: bold; JS sets this via style if needed, or keep here */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+}
+
+/* Alliance item controls styling */
+.alliance-name-span {
+    cursor: pointer;
+    padding-right: 10px;
+    overflow: hidden; /* Prevent long names from breaking layout */
+    text-overflow: ellipsis; /* Show ... for long names */
+    white-space: nowrap; /* Keep name on one line */
+    max-width: 150px; /* Adjust as needed */
+}
+
+.alliance-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0; 
+}
+
+.alliance-color-picker {
+    margin-left: 10px; 
+    border: 1px solid #ced4da; /* Subtle border */
+    padding: 0;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    border-radius: 4px; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent; 
+}
+.alliance-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.alliance-color-picker::-webkit-color-swatch { border: none; border-radius: 3px; }
+.alliance-color-picker::-moz-color-swatch { border: none; border-radius: 3px; }
+
+.alliance-delete-btn {
+    margin-left: 8px; 
+    padding: 4px 7px;
+    font-size: 0.85em;
+    font-weight: bold;
+    background-color: #f8d7da; 
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1; 
+    transition: background-color 0.2s, border-color 0.2s;
+}
+.alliance-delete-btn:hover {
+    background-color: #f1b0b7;
+    border-color: #eba3aa;
+}
+
+#add-alliance-btn { 
+    margin-top: 20px; /* Space above button */
+    padding: 10px 15px;
+    width: 100%;
+    background-color: #28a745; 
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+#add-alliance-btn:hover {
+    background-color: #218838; 
+}
+
+#instructions {
+    margin-top: 20px;
+    font-size: 0.85em;
+    color: #6c757d;
+    border-top: 1px dashed #ced4da;
+    padding-top: 15px;
+    flex-shrink: 0; /* Prevent instructions from shrinking */
+}
+#instructions p { margin-top: 0; }
+#instructions ol { padding-left: 20px; margin-bottom: 0;}
+
+
+/* --- Square Map Viewport Styles --- */
+#map-viewport-container {
+    flex-grow: 1; 
+    display: flex;
+    justify-content: center; 
+    align-items: center;    
+    padding: 20px; 
+    /* overflow: hidden; /* Not on container, but on map-viewport or map-area */
+}
+
+#map-viewport {
+    width: 75vh; /* Example: 75% of viewport height - ADJUST THIS! */
+    height: 75vh; /* Make it square - ADJUST THIS! */
+    /* OR use fixed size: */
+    /* width: 700px; */
+    /* height: 700px; */
+    max-width: 100%; 
+    /* max-height: 800px;  Optional max pixel size */
+    background-color: #dee2e6; /* Background for the square viewport area */
+    border: 1px solid #adb5bd;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1) inset;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Important: if map-area itself needs to be clipped */
+}
+
+#map-area {
+    max-width: 100%;  
+    max-height: 100%; 
+    overflow: auto;   /* CRITICAL: Add scrollbars if map-grid is larger than viewport */
+    background-color: #f8f9fa; /* Background for the scrollable area, if visible */
+}
+
+/* --- Map Grid and Cell Styles --- */
+#map-grid {
+    border-collapse: collapse;
+    margin: 0; /* Table will be centered by #map-viewport's flex if smaller */
+}
+
+/* Square cells using aspect-ratio */
+#map-grid th,
+#map-grid td {
+    border: 1px solid #ced4da;
+    width: 50px;  /* !!! ADJUST THIS BASE WIDTH FOR YOUR CELLS !!! */
+    aspect-ratio: 1 / 1; /* Makes height equal to width */
+    padding: 2px; /* Minimal padding for small cells */
+    text-align: center;
+    vertical-align: middle; 
+    font-size: 0.55em; /* !!! ADJUST FONT SIZE FOR CONTENT FITTING !!! */
+    box-sizing: border-box;
+    background-color: #ffffff;
+    overflow: hidden; /* Crucial for preventing content spill */
+    transition: background-color 0.2s, border-color 0.2s; /* For hover/selection effects */
+}
+
+/* Header cells (1, 2, 3...) */
+#map-grid thead th {
+    background-color: #e9ecef;
+    font-weight: bold;
+    font-size: 0.6em; /* Adjust */
+    color: #495057;
+}
+/* Corner empty header cell */
+#map-grid thead th:first-child {
+    background-color: #e9ecef; /* Match other headers */
+}
+
+
+/* Row header cells (A, B, C...) */
+#map-grid tbody td:first-child {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #495057;
+    font-size: 0.6em; /* Adjust */
+    /* If you want row headers to be non-square or different width:
+    width: 35px; 
+    aspect-ratio: unset; 
+    height: 50px; // Match data cell height (if cell width is 50px)
+    */
+}
+
+/* Spacer cells (empty cells between data cells in CSV) */
+#map-grid td.empty-cell {
+    background-color: #f8f9fa; /* Lighter than data cell bg, darker than viewport */
+    border-color: #e9ecef; /* Softer border for spacers */
+    /* If spacers are also square and use the same width:
+       width: 50px; (same as data cells)
+       aspect-ratio: 1 / 1; (same as data cells)
+    */
+    /* If spacers are narrower visual separators:
+       width: 10px;
+       aspect-ratio: unset;
+       height: 50px; // To match data cell height (if data cell width is 50px)
+    */
+}
+/* Ensure empty cells that are assignable don't get spacer styling if they have content/ID */
+#map-grid td[id^="cell-"].empty-cell:not(:empty) { /* If it has an ID and is empty-cell but has content div */
+    background-color: #ffffff; /* Revert to data cell background */
+    border-color: #ced4da; /* Revert to data cell border */
+}
+
+
+/* Content within a map cell */
+.map-cell-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 1px; 
+    text-align: center;
+    line-height: 1.2; /* Tighter line height for small cells */
+}
+
+.cell-level-type {
+    font-weight: bold;
+    /* font-size is relative to parent td's 0.55em */
+    font-size: 0.9em; 
+    color: #343a40;
+    display: block; /* Helps with centering & stacking */
+}
+.cell-coords {
+    font-size: 0.8em; 
+    color: #6c757d;
+    display: block;
+}
+.cell-status {
+    font-size: 0.8em; 
+    color: #28a745; /* Green for OPEN */
+    font-style: italic;
+    display: block;
+}
+
+
+/* --- Footer --- */
+.s3plan-footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    border-top: 1px solid #dee2e6;
+    font-size: 0.9em;
+    color: #6c757d;
+}
