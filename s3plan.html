@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Season 3 Planning Map</title>
+    <!-- Link to your main Hive stylesheet first (adjust path if needed) -->
+    <link rel="stylesheet" href="style.css"> 
+    <!-- Then link to the new stylesheet specific to this planner -->
+    <link rel="stylesheet" href="s3plan_styles.css"> 
+</head>
+<body>
+    <div class="s3plan-page-container"> <!-- Added a wrapper for page-specific body styling if needed -->
+        <header class="s3plan-header">
+             <h1>Season 3 Planning Map</h1>
+             <p><a href="index.html">Back to Hive Home</a></p> <!-- Link back to main page -->
+        </header>
+        <div class="s3plan-main-content container"> <!-- Re-used 'container' from previous CSS, can be s3plan-container -->
+            <div id="sidebar">
+                <h2>Alliances</h2>
+                <ul id="alliance-list">
+                    <!-- Alliances will be populated by JavaScript -->
+                </ul>
+                <div id="instructions">
+                    <p><strong>Instructions:</strong></p>
+                    <ol>
+                        <li>Select an alliance from the list.</li>
+                        <li>Click on map cells to assign them to the selected alliance.</li>
+                        <li>Clicking an assigned cell again will unassign it if it belongs to the current alliance.</li>
+                    </ol>
+                </div>
+            </div>
+            <div id="map-area">
+                <table id="map-grid">
+                    <thead>
+                        <tr id="map-header-row">
+                            <!-- Column headers will be populated by JavaScript -->
+                        </tr>
+                    </thead>
+                    <tbody id="map-body">
+                        <!-- Map cells will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <footer class="s3plan-footer">
+            <p>Planner tool for Hive Game.</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
