@@ -40,14 +40,12 @@ X,,,"Lvl 1 Trade Post (74,74) OPEN",,,"Lvl 1 Village (149,74) OPEN",,,"Lvl 1 Vil
 Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) OPEN",,,"Lvl 1 Digging Stronghold (187,29) OPEN",,,"Lvl 1 Digging Stronghold (262,29) OPEN",,,"Lvl 1 Digging Stronghold (337,29) OPEN",,,"Lvl 1 Digging Stronghold (412,29) OPEN",,,"Lvl 1 Digging Stronghold (499,29) OPEN",,,"Lvl 1 Digging Stronghold (587,29) OPEN",,,"Lvl 1 Digging Stronghold (662,29) OPEN",,,"Lvl 1 Digging Stronghold (737,29) OPEN",,,"Lvl 1 Digging Stronghold (812,29) OPEN",,,"Lvl 1 Digging Stronghold (887,29) OPEN",,,"Lvl 1 Digging Stronghold (969,29) OPEN"
 `.trim();
 
-    const alliances = [
+    let alliances = [
         { id: 'alliance1', name: 'The First Order', color: 'rgba(255, 100, 100, 0.5)', borderColor: 'rgb(200, 50, 50)' },
         { id: 'alliance2', name: 'Blue Squadron', color: 'rgba(100, 100, 255, 0.5)', borderColor: 'rgb(50, 50, 200)' },
         { id: 'alliance3', name: 'Green Guardians', color: 'rgba(100, 255, 100, 0.5)', borderColor: 'rgb(50, 200, 50)' },
-        { id: 'alliance4', name: 'Golden Empire', color: 'rgba(255, 215, 0, 0.5)', borderColor: 'rgb(204, 172, 0)' },
-        { id: 'alliance5', name: 'Purple Haze', color: 'rgba(180, 100, 220, 0.5)', borderColor: 'rgb(120, 50, 160)' },
-        // Add more alliances as needed: { id: 'uniqueID', name: 'Alliance Name', color: 'rgba(...)', borderColor: 'rgb(...)' },
     ];
+    let nextAllianceId = alliances.length + 1;
 
     let selectedAllianceId = null;
     let cellAssignments = {}; // Stores { 'cell-rowIndex-colIndex': 'allianceId' }
@@ -55,6 +53,7 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
     const allianceListElement = document.getElementById('alliance-list');
     const mapHeaderRowElement = document.getElementById('map-header-row');
     const mapBodyElement = document.getElementById('map-body');
+    const addAllianceButton = document.getElementById('add-alliance-btn');
 
     function parseCellContent(contentString) {
         if (!contentString || contentString.trim() === '') return null;
@@ -65,43 +64,177 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
         if (match) {
             return {
                 level: match[1],
-                type: match[2].trim(), // Ensure type is trimmed
+                type: match[2].trim(),
                 coords: match[3].trim(),
                 status: match[4]
             };
         }
-        // Fallback for content that doesn't match the Lvl pattern
-        // e.g. if a cell just contains "Empty" or some other note.
-        // For now, if it's not strictly empty but doesn't match, we'll show it as raw text.
-        // You might want to handle this differently.
         console.warn("Unparsed cell content:", contentString);
         return { type: contentString, level: '', coords: '', status: '' };
     }
 
     function renderAlliances() {
         allianceListElement.innerHTML = '';
-        alliances.forEach(alliance => {
+        alliances.forEach((alliance, index) => {
             const li = document.createElement('li');
-            li.textContent = alliance.name;
-            li.dataset.allianceId = alliance.id;
-            
-            // Subtle background for unselected items, more pronounced for selected
-            li.style.backgroundColor = alliance.id === selectedAllianceId ? alliance.color.replace(/0\.\d+/, '0.3') : alliance.color.replace(/0\.\d+/, '0.1');
-            li.style.borderColor = alliance.id === selectedAllianceId ? alliance.borderColor : '#ddd';
-            li.style.borderLeftWidth = '5px';
-            li.style.borderLeftColor = alliance.id === selectedAllianceId ? alliance.borderColor : 'transparent';
+            // Inline styles for flex behavior, can be moved to CSS for #alliance-list li if preferred
+            li.style.display = 'flex'; 
+            li.style.justifyContent = 'space-between';
+            li.style.alignItems = 'center';
+            // CSS classes will handle most of the styling below, but some dynamic parts here
+            // li.className = 'alliance-list-item'; // Add a class for base styling
 
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = alliance.name;
+            nameSpan.className = 'alliance-name-span'; // Class for styling
+            nameSpan.title = "Click to select, double click to edit name";
+            nameSpan.style.flexGrow = '1'; // Allow name to take up space
+
+            nameSpan.addEventListener('click', () => {
+                selectedAllianceId = alliance.id;
+                renderAlliances(); // Re-render to update selection style in list
+                // updateMapColors(); // Map colors are updated when a cell is clicked, or initially
+            });
+
+            nameSpan.addEventListener('dblclick', () => {
+                const newName = prompt("Enter new name for '" + alliance.name + "':", alliance.name);
+                if (newName && newName.trim() !== "") {
+                    alliances[index].name = newName.trim();
+                    renderAlliances();
+                    saveAlliancesToLocalStorage();
+                }
+            });
+            
+            li.appendChild(nameSpan);
+
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'alliance-controls'; // Class for styling
+
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.value = rgbToHex(alliance.borderColor); 
+            colorInput.title = "Edit alliance color";
+            colorInput.className = 'alliance-color-picker'; // Class for styling
+            colorInput.addEventListener('input', (e) => {
+                const newHexColor = e.target.value;
+                alliances[index].color = hexToRgba(newHexColor, 0.5);
+                alliances[index].borderColor = hexToRgba(newHexColor, 1).replace('rgba', 'rgb').replace(',1)', ')');
+                renderAlliances();
+                updateMapColors(); // Update map cells with new color
+                saveAlliancesToLocalStorage();
+            });
+            controlsDiv.appendChild(colorInput);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'X';
+            deleteBtn.title = "Delete alliance";
+            deleteBtn.className = 'alliance-delete-btn'; // Class for styling
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent li click event
+                if (confirm(`Are you sure you want to delete alliance "${alliance.name}"? This will unassign its cells.`)) {
+                    alliances.splice(index, 1);
+                    for (const cellId in cellAssignments) {
+                        if (cellAssignments[cellId] === alliance.id) {
+                            delete cellAssignments[cellId];
+                        }
+                    }
+                    if (selectedAllianceId === alliance.id) {
+                        selectedAllianceId = null;
+                    }
+                    renderAlliances();
+                    updateMapColors();
+                    saveAlliancesToLocalStorage();
+                    saveAssignmentsToLocalStorage();
+                }
+            });
+            controlsDiv.appendChild(deleteBtn);
+            
+            li.appendChild(controlsDiv);
+
+            // Apply dynamic styles based on selection and alliance color
+            const baseColorAlpha = alliance.id === selectedAllianceId ? '0.4' : '0.15'; // Slightly more pronounced selection
+            li.style.backgroundColor = alliance.color.replace(/0\.\d+/, baseColorAlpha);
+            li.style.borderColor = alliance.borderColor; // Use alliance border color always for consistency
+            li.style.borderWidth = '1px';
+            li.style.borderStyle = 'solid';
+            li.style.borderRadius = '5px'; // Consistent with s3plan_styles.css
+            li.style.padding = '10px 12px'; // Consistent with s3plan_styles.css
 
             if (alliance.id === selectedAllianceId) {
-                li.classList.add('selected');
+                li.classList.add('selected'); // For CSS : .selected { box-shadow: ...; }
+                li.style.borderLeftColor = alliance.borderColor; // Prominent left border
+                li.style.borderLeftWidth = '5px';
+            } else {
+                li.style.borderLeftColor = alliance.borderColor; // Still use alliance color but less prominent
+                li.style.borderLeftWidth = '1px'; // Or make it thicker but same as others
             }
-
-            li.addEventListener('click', () => {
-                selectedAllianceId = alliance.id;
-                renderAlliances(); // Re-render to update selection style
-            });
+            
             allianceListElement.appendChild(li);
         });
+    }
+
+    if (addAllianceButton) {
+        addAllianceButton.addEventListener('click', () => {
+            const newName = prompt("Enter name for the new alliance:", `Alliance ${nextAllianceId}`);
+            if (newName && newName.trim() !== "") {
+                const r = Math.floor(Math.random() * 200) + 20; // Avoid very dark colors
+                const g = Math.floor(Math.random() * 200) + 20;
+                const b = Math.floor(Math.random() * 200) + 20;
+                const newAlliance = {
+                    id: `alliance${Date.now()}-${nextAllianceId}`, // More unique ID
+                    name: newName.trim(),
+                    color: `rgba(${r},${g},${b},0.5)`,
+                    borderColor: `rgb(${r},${g},${b})`
+                };
+                alliances.push(newAlliance);
+                nextAllianceId++;
+                renderAlliances();
+                saveAlliancesToLocalStorage();
+            }
+        });
+    }
+
+
+    function rgbToHex(rgbString) {
+        if (!rgbString || typeof rgbString !== 'string') return '#FFFFFF';
+        const match = rgbString.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+        if (!match) return '#FFFFFF'; // Default white if parse fails
+        return "#" + ((1 << 24) + (parseInt(match[1]) << 16) + (parseInt(match[2]) << 8) + parseInt(match[3])).toString(16).slice(1).toUpperCase();
+    }
+
+    function hexToRgba(hex, alpha = 1) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+    
+    function saveAlliancesToLocalStorage() {
+        localStorage.setItem('s3planAlliances', JSON.stringify(alliances));
+    }
+
+    function loadAlliancesFromLocalStorage() {
+        const saved = localStorage.getItem('s3planAlliances');
+        if (saved) {
+            alliances = JSON.parse(saved);
+            const maxIdNum = alliances.reduce((max, a) => {
+                const idNumMatch = a.id.match(/-(\d+)$/); // Match trailing number after hyphen
+                const idNum = idNumMatch ? parseInt(idNumMatch[1]) : 0;
+                return idNum > max ? idNum : max;
+            }, 0);
+            nextAllianceId = maxIdNum + 1;
+        }
+    }
+
+    function saveAssignmentsToLocalStorage() {
+        localStorage.setItem('s3planAssignments', JSON.stringify(cellAssignments));
+    }
+
+    function loadAssignmentsFromLocalStorage() {
+        const saved = localStorage.getItem('s3planAssignments');
+        if (saved) {
+            cellAssignments = JSON.parse(saved);
+        }
     }
 
     function renderMap() {
@@ -109,36 +242,30 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
         mapBodyElement.innerHTML = '';
 
         const rows = csvData.split('\n');
-        const headerCells = rows[0].split(',');
+        const headerCellsCSV = rows[0].split(',');
 
-        // Create header row (empty first cell for row letters)
         const thCorner = document.createElement('th');
         mapHeaderRowElement.appendChild(thCorner); 
         
-        let actualHeaderIndex = 0;
-        for(let i = 1; i < headerCells.length; i++) { // Start from 1 to skip first empty col header
-            if (headerCells[i].trim() !== '') { // Only add non-empty headers
+        let actualHeaderCount = 0;
+        for(let i = 1; i < headerCellsCSV.length; i++) {
+            if (headerCellsCSV[i].trim() !== '') {
                 const th = document.createElement('th');
-                th.textContent = headerCells[i];
+                th.textContent = headerCellsCSV[i];
                 mapHeaderRowElement.appendChild(th);
-                actualHeaderIndex++;
+                actualHeaderCount++;
             }
         }
-        const numberOfDisplayColumns = actualHeaderIndex;
-
-
-        rows.slice(1).forEach((rowString, rowIndex) => { // rowIndex is 0-based for data rows
-            if (rowString.trim() === '' || /^(,+)$/.test(rowString.trim())) return; // Skip empty/separator lines
+        
+        rows.slice(1).forEach((rowString, rowIndex) => {
+            if (rowString.trim() === '' || /^(,+)$/.test(rowString.trim())) return;
 
             const tr = document.createElement('tr');
-            // More robust CSV cell splitting:
-            // This regex handles quoted cells that may contain commas.
-            // It splits by comma, but not if the comma is inside quotes.
             const csvCellsInRow = [];
             let currentCell = '';
             let inQuotes = false;
             for (let char of rowString) {
-                if (char === '"') {
+                if (char === '"' && (currentCell === '' || currentCell.slice(-1) !== '\\')) { // Handle escaped quotes if needed
                     inQuotes = !inQuotes;
                 } else if (char === ',' && !inQuotes) {
                     csvCellsInRow.push(currentCell);
@@ -147,23 +274,21 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
                     currentCell += char;
                 }
             }
-            csvCellsInRow.push(currentCell); // Add the last cell
+            csvCellsInRow.push(currentCell);
 
-            // First cell is the row letter
             const rowLetterTd = document.createElement('td');
-            rowLetterTd.textContent = csvCellsInRow[0].replace(/^"/, '').replace(/"$/, '').trim(); // Clean quotes
+            rowLetterTd.textContent = csvCellsInRow[0].replace(/^"/, '').replace(/"$/, '').trim();
             tr.appendChild(rowLetterTd);
             
-            let displayColIndex = 0; // For unique cell IDs and data attributes
-            // Iterate through expected data columns based on header
-            for (let csvDataCol = 1; csvDataCol < csvCellsInRow.length; csvDataCol +=2 ) { // Data is in 1, 3, 5...
-                 if (displayColIndex >= numberOfDisplayColumns) break; // Don't create more cells than headers
+            let displayColIndex = 0; 
+            for (let csvDataCol = 1; csvDataCol < csvCellsInRow.length; csvDataCol +=2 ) {
+                 if (displayColIndex >= actualHeaderCount) break; 
 
                 const td = document.createElement('td');
                 const cellId = `cell-${rowIndex}-${displayColIndex}`;
                 td.id = cellId;
-                td.dataset.rowIndex = rowIndex;
-                td.dataset.colIndex = displayColIndex;
+                // td.dataset.rowIndex = rowIndex; // Not strictly needed if using ID
+                // td.dataset.colIndex = displayColIndex;
 
                 let cellContentString = csvCellsInRow[csvDataCol] ? csvCellsInRow[csvDataCol].replace(/^"/, '').replace(/"$/, '').trim() : "";
 
@@ -178,28 +303,33 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
                             </div>
                         `;
                     } else {
-                        // If parseCellContent returns null (truly empty) or minimal object
                         td.innerHTML = `<div class="map-cell-content"><span>${cellContentString}</span></div>`;
                     }
                     td.addEventListener('click', handleCellClick);
                 } else {
-                    td.classList.add('empty-cell'); // CSV cell was empty or just quotes
-                     // Make empty cells clickable too if you want to assign them
-                    td.addEventListener('click', handleCellClick);
+                    td.classList.add('empty-cell'); // Cell from CSV was empty
+                    td.innerHTML = `<div class="map-cell-content"></div>`; // Ensure structure for consistent styling
+                    td.addEventListener('click', handleCellClick); // Make empty cells assignable
                 }
                 tr.appendChild(td);
                 displayColIndex++;
 
-                // Add spacer cell if there's another column in CSV and we're not at the end
-                if (csvDataCol + 1 < csvCellsInRow.length && displayColIndex < numberOfDisplayColumns) {
+                if (csvDataCol + 1 < csvCellsInRow.length && displayColIndex < actualHeaderCount) {
                     const spacerTd = document.createElement('td');
-                    spacerTd.classList.add('empty-cell'); // This is a visual spacer
+                    spacerTd.classList.add('empty-cell'); 
+                    // spacerTd.innerHTML = `<div class="map-cell-content"></div>`; // No content for spacers
+                    tr.appendChild(spacerTd);
+                } else if (displayColIndex < actualHeaderCount && csvDataCol + 1 >= csvCellsInRow.length) {
+                    // If CSV row ends but headers expect more columns (due to uneven spacer rendering)
+                    // This case should ideally not happen if CSV structure is consistent with headers
+                    const spacerTd = document.createElement('td');
+                    spacerTd.classList.add('empty-cell');
                     tr.appendChild(spacerTd);
                 }
             }
             mapBodyElement.appendChild(tr);
         });
-        updateMapColors(); // Apply initial colors (e.g., if loaded from localStorage)
+        updateMapColors();
     }
 
     function handleCellClick(event) {
@@ -207,23 +337,18 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
             alert("Please select an alliance first!");
             return;
         }
-
         const cell = event.currentTarget;
         const cellId = cell.id;
 
-        // If cell is an empty-cell placeholder and not intended to be claimable, do nothing.
-        // However, the current logic attaches click handlers to all td with an ID.
-        // If you want to differentiate, check for a specific class or lack of content.
-        // For now, all cells with an ID are claimable.
+        if (!cellId) return; // Should not happen if IDs are assigned
 
         if (cellAssignments[cellId] === selectedAllianceId) {
-            delete cellAssignments[cellId]; // Unassign if already belongs to current alliance
+            delete cellAssignments[cellId]; 
         } else {
-            cellAssignments[cellId] = selectedAllianceId; // Assign/reassign
+            cellAssignments[cellId] = selectedAllianceId; 
         }
         updateMapColors();
-        // Optional: Save to localStorage
-        // localStorage.setItem('s3planAssignments', JSON.stringify(cellAssignments));
+        saveAssignmentsToLocalStorage();
     }
 
     function updateMapColors() {
@@ -236,35 +361,26 @@ Y,"Lvl 1 Digging Stronghold (29,29) OPEN",,,"Lvl 1 Digging Stronghold (112,29) O
                 const alliance = alliances.find(a => a.id === assignedAllianceId);
                 if (alliance) {
                     cell.style.backgroundColor = alliance.color;
-                    cell.style.border = `2px solid ${alliance.borderColor}`;
+                    cell.style.border = `2px solid ${alliance.borderColor}`; // Make border more prominent for assigned
+                } else { // Alliance might have been deleted
+                    delete cellAssignments[cellId]; // Clean up assignment
+                    cell.style.backgroundColor = ''; 
+                    cell.style.border = ''; 
                 }
             } else {
-                // Reset to default styles (as defined in CSS)
-                cell.style.backgroundColor = ''; // Let CSS handle default
-                cell.style.border = ''; // Let CSS handle default
-                // Ensure empty-cell class styling is not overridden if it's an empty structural cell
-                if (cell.classList.contains('empty-cell') && !cell.querySelector('.map-cell-content')) {
-                     cell.style.backgroundColor = '#f5f5f5'; // From s3plan_styles.css
-                     cell.style.border = '1px solid #ccc'; // From s3plan_styles.css
-                } else if (cell.querySelector('.map-cell-content') || cell.classList.contains('empty-cell')) {
-                    // It's a content cell or a clickable empty cell, reset to default content cell style
-                     cell.style.backgroundColor = '#fff'; // From s3plan_styles.css for td
-                     cell.style.border = '1px solid #ccc'; // From s3plan_styles.css for td
-                }
+                // Reset to default styles (let CSS handle this)
+                cell.style.backgroundColor = ''; 
+                cell.style.border = ''; 
+                // If it's an empty structural cell that isn't supposed to be colored
+                // and has a specific .empty-cell style, this reset might need adjustment
+                // or ensure your CSS for .empty-cell is specific enough.
             }
         });
     }
-    
-    // Optional: Load from localStorage
-    // function loadAssignments() {
-    //    const saved = localStorage.getItem('s3planAssignments');
-    //    if (saved) {
-    //        cellAssignments = JSON.parse(saved);
-    //    }
-    // }
 
     // Initial Setup
-    // loadAssignments(); // Optional: load saved state
+    loadAlliancesFromLocalStorage();
+    loadAssignmentsFromLocalStorage();
     renderAlliances();
     renderMap();
 });
