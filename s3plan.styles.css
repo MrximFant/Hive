@@ -1,0 +1,172 @@
+/* s3plan_styles.css */
+
+/* Add some margin to the overall page if not handled by main style.css */
+.s3plan-page-container {
+    margin: 0 auto; /* Centers the content block */
+    padding: 0 20px; /* Adds 20px margin on left and right */
+    max-width: 1800px; /* Max width for the whole page content */
+}
+
+.s3plan-header, .s3plan-footer {
+    text-align: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee; /* For header */
+}
+.s3plan-footer {
+    border-top: 1px solid #eee;
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #777;
+}
+
+/* Styles for the main content area (sidebar + map) */
+/* The .container class is assumed to provide basic flex or layout properties.
+   If your main style.css doesn't define .container or defines it differently, 
+   you might need to adjust this or rename .container in HTML to something unique.
+   The following is based on the previously provided CSS for the planner. */
+
+.container { /* This selector might conflict if your main style.css has it. Consider renaming to .s3plan-layout-container */
+    display: flex;
+    margin-top: 20px; /* Space below header */
+    margin-bottom: 20px; /* Space above footer */
+    background-color: #fff; /* If you want a distinct background for the content area */
+    box-shadow: 0 0 10px rgba(0,0,0,0.05); /* Softer shadow */
+    min-height: 70vh;
+}
+
+#sidebar {
+    width: 280px; /* Slightly wider sidebar */
+    padding: 20px;
+    border-right: 1px solid #ddd;
+    background-color: #f9f9f9;
+    flex-shrink: 0; /* Prevent sidebar from shrinking */
+}
+
+#sidebar h2 {
+    margin-top: 0;
+    color: #444;
+    font-size: 1.4em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#alliance-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#alliance-list li {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid #ddd; /* Default border */
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.95em;
+}
+
+#alliance-list li:hover {
+    background-color: #eef3ff; /* Light blueish hover */
+    border-color: #aaccff;
+}
+
+#alliance-list li.selected {
+    font-weight: bold;
+    /* The border-left will be styled by JS based on alliance color */
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+#instructions {
+    margin-top: 25px;
+    font-size: 0.9em;
+    color: #555;
+    border-top: 1px dashed #ccc;
+    padding-top: 20px;
+}
+
+#instructions p {
+    margin-top: 0;
+}
+#instructions ol {
+    padding-left: 20px;
+}
+
+#map-area {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-x: auto; /* Allow scrolling if map is too wide */
+    background-color: #fdfdfd; /* Very light background for map area */
+}
+
+#map-grid {
+    border-collapse: collapse;
+    margin: 0 auto; /* Center the map grid if it's narrower than map-area */
+}
+
+#map-grid th, 
+#map-grid td {
+    border: 1px solid #ccc;
+    padding: 6px; 
+    text-align: center;
+    min-width: 80px; /* Adjusted min width */
+    height: 65px; 
+    vertical-align: top;
+    font-size: 0.7em; /* Smaller font for dense info */
+    box-sizing: border-box;
+    position: relative; /* For potential future absolute positioned elements inside */
+    background-color: #fff; /* Default background for cells */
+}
+
+#map-grid th {
+    background-color: #e9ecef; /* Bootstrap-like header color */
+    font-weight: bold;
+    font-size: 0.75em;
+}
+
+#map-grid td.empty-cell {
+    background-color: #f5f5f5; 
+    min-width: 15px; /* Narrower for spacer cells */
+}
+
+/* Content within a map cell */
+.map-cell-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around; /* Distribute space */
+    align-items: center; /* Center horizontally */
+    height: 100%;
+    padding: 2px; /* Small padding inside the content div */
+    text-align: center;
+}
+
+.cell-level-type {
+    font-weight: bold;
+    font-size: 0.95em; /* Relative to parent td font-size */
+    color: #333;
+    display: block; /* Ensure it takes full width for centering */
+}
+.cell-coords {
+    font-size: 0.85em;
+    color: #666;
+    display: block;
+}
+.cell-status {
+    font-size: 0.85em;
+    font-style: italic;
+    color: #28a745; /* Green for OPEN */
+    display: block;
+}
+
+.unassigned-cell {
+    /* This class isn't strictly needed if default td styling is sufficient */
+    /* background-color: #ffffff; */
+}
+
+/* Styles for the row header cells (A, B, C...) */
+#map-body td:first-child {
+    background-color: #e9ecef;
+    font-weight: bold;
+    min-width: 30px; /* Narrower for row letters */
+}
