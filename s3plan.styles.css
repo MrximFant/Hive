@@ -1,172 +1,115 @@
-/* s3plan_styles.css */
+/* In s3plan_styles.css */
 
-/* Add some margin to the overall page if not handled by main style.css */
-.s3plan-page-container {
-    margin: 0 auto; /* Centers the content block */
-    padding: 0 20px; /* Adds 20px margin on left and right */
-    max-width: 1800px; /* Max width for the whole page content */
-}
+/* ... (other styles like .s3plan-page-container, .s3plan-header, #sidebar etc. remain) ... */
 
-.s3plan-header, .s3plan-footer {
-    text-align: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #eee; /* For header */
-}
-.s3plan-footer {
-    border-top: 1px solid #eee;
-    margin-top: 30px;
-    font-size: 0.9em;
-    color: #777;
-}
-
-/* Styles for the main content area (sidebar + map) */
-/* The .container class is assumed to provide basic flex or layout properties.
-   If your main style.css doesn't define .container or defines it differently, 
-   you might need to adjust this or rename .container in HTML to something unique.
-   The following is based on the previously provided CSS for the planner. */
-
-.container { /* This selector might conflict if your main style.css has it. Consider renaming to .s3plan-layout-container */
+/* NEW Styles for Square Map Viewport */
+#map-viewport-container {
+    flex-grow: 1; /* Allow it to take available space in the flex row */
     display: flex;
-    margin-top: 20px; /* Space below header */
-    margin-bottom: 20px; /* Space above footer */
-    background-color: #fff; /* If you want a distinct background for the content area */
-    box-shadow: 0 0 10px rgba(0,0,0,0.05); /* Softer shadow */
-    min-height: 70vh;
+    justify-content: center; /* Center the square viewport if space allows */
+    align-items: center;    /* Center the square viewport if space allows */
+    padding: 20px; /* Padding around the viewport itself */
+    overflow: hidden; /* Hide anything outside the conceptual container */
 }
 
-#sidebar {
-    width: 280px; /* Slightly wider sidebar */
-    padding: 20px;
-    border-right: 1px solid #ddd;
-    background-color: #f9f9f9;
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
-}
-
-#sidebar h2 {
-    margin-top: 0;
-    color: #444;
-    font-size: 1.4em;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-    margin-bottom: 15px;
-}
-
-#alliance-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-#alliance-list li {
-    padding: 12px 15px;
-    margin-bottom: 8px;
-    border-radius: 5px;
-    cursor: pointer;
-    border: 1px solid #ddd; /* Default border */
-    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
-    font-size: 0.95em;
-}
-
-#alliance-list li:hover {
-    background-color: #eef3ff; /* Light blueish hover */
-    border-color: #aaccff;
-}
-
-#alliance-list li.selected {
-    font-weight: bold;
-    /* The border-left will be styled by JS based on alliance color */
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-}
-
-#instructions {
-    margin-top: 25px;
-    font-size: 0.9em;
-    color: #555;
-    border-top: 1px dashed #ccc;
-    padding-top: 20px;
-}
-
-#instructions p {
-    margin-top: 0;
-}
-#instructions ol {
-    padding-left: 20px;
+#map-viewport {
+    width: 70vh; /* Example: 70% of viewport height */
+    height: 70vh; /* Make it square */
+    /* OR use a fixed size like:
+    width: 600px;
+    height: 600px; 
+    */
+    max-width: 100%; /* Don't exceed parent's width */
+    max-height: 800px; /* Optional: A max pixel height */
+    position: relative; /* For potential absolute positioning of map inside */
+    background-color: #e0e0e0; /* Background for the square viewport area */
+    border: 2px solid #aaa;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1) inset;
+    display: flex; /* To center map-area if it's smaller */
+    justify-content: center;
+    align-items: center;
 }
 
 #map-area {
-    flex-grow: 1;
-    padding: 20px;
-    overflow-x: auto; /* Allow scrolling if map is too wide */
-    background-color: #fdfdfd; /* Very light background for map area */
+    /* map-area will now be the direct child of map-viewport */
+    /* It will contain the table and manage scrolling if table is larger than viewport */
+    max-width: 100%;  /* Can't be wider than viewport */
+    max-height: 100%; /* Can't be taller than viewport */
+    overflow: auto;   /* IMPORTANT: Add scrollbars if map-grid is larger */
 }
 
 #map-grid {
     border-collapse: collapse;
-    margin: 0 auto; /* Center the map grid if it's narrower than map-area */
+    /* The table will size naturally based on its cells.
+       It should not have width: 100% or height: 100% of map-area
+       unless you want it to stretch non-uniformly.
+       margin: 0 auto; will center it within map-area if map-area is larger.
+    */
+    margin: 0; /* Or margin: auto to center if #map-area is bigger than table */
 }
 
-#map-grid th, 
+/* Square cells using aspect-ratio (preferred) */
+#map-grid th,
 #map-grid td {
     border: 1px solid #ccc;
-    padding: 6px; 
+    width: 50px;  /* Base width for cells. Adjust this value! */
+    aspect-ratio: 1 / 1; /* Makes height equal to width */
+    padding: 4px;
     text-align: center;
-    min-width: 80px; /* Adjusted min width */
-    height: 65px; 
-    vertical-align: top;
-    font-size: 0.7em; /* Smaller font for dense info */
+    vertical-align: middle; /* Changed to middle for better centering in square */
+    font-size: 0.6em; /* Adjust for content fitting */
     box-sizing: border-box;
-    position: relative; /* For potential future absolute positioned elements inside */
-    background-color: #fff; /* Default background for cells */
+    background-color: #fff;
+    overflow: hidden; /* Crucial for preventing content spill */
 }
 
+/* Styles for header cells, empty cells, map-cell-content, etc.
+   from previous "square cell" example largely remain the same.
+   You'll need to fine-tune font sizes and padding for the new cell width (e.g., 50px).
+*/
+
 #map-grid th {
-    background-color: #e9ecef; /* Bootstrap-like header color */
+    background-color: #e9ecef;
     font-weight: bold;
-    font-size: 0.75em;
+    font-size: 0.65em; /* Adjust */
 }
 
 #map-grid td.empty-cell {
-    background-color: #f5f5f5; 
-    min-width: 15px; /* Narrower for spacer cells */
+    background-color: #f5f5f5;
+    /* Spacers also become square if they use the same width + aspect-ratio */
+    /* If you want different spacer width:
+    width: 10px;
+    height: 50px; // Match data cell height for alignment
+    aspect-ratio: unset; // Or specific aspect ratio for the spacer
+    */
 }
 
-/* Content within a map cell */
+#map-body td:first-child { /* Row letters A, B, C... */
+    background-color: #e9ecef;
+    font-weight: bold;
+    /* width: 30px; // If you want them narrower than data cells
+    height: 50px; // Match data cell height
+    aspect-ratio: unset; */
+}
+
 .map-cell-content {
     display: flex;
     flex-direction: column;
-    justify-content: space-around; /* Distribute space */
-    align-items: center; /* Center horizontally */
+    justify-content: center;
+    align-items: center;
+    width: 100%;
     height: 100%;
-    padding: 2px; /* Small padding inside the content div */
+    padding: 1px; /* Minimal padding inside content div */
     text-align: center;
 }
 
 .cell-level-type {
     font-weight: bold;
-    font-size: 0.95em; /* Relative to parent td font-size */
-    color: #333;
-    display: block; /* Ensure it takes full width for centering */
+    font-size: 0.95em; /* Relative to td's 0.6em */
+    line-height: 1.1;
 }
-.cell-coords {
-    font-size: 0.85em;
-    color: #666;
-    display: block;
+.cell-coords, .cell-status {
+    font-size: 0.85em; /* Relative to td's 0.6em */
+    line-height: 1.1;
 }
-.cell-status {
-    font-size: 0.85em;
-    font-style: italic;
-    color: #28a745; /* Green for OPEN */
-    display: block;
-}
-
-.unassigned-cell {
-    /* This class isn't strictly needed if default td styling is sufficient */
-    /* background-color: #ffffff; */
-}
-
-/* Styles for the row header cells (A, B, C...) */
-#map-body td:first-child {
-    background-color: #e9ecef;
-    font-weight: bold;
-    min-width: 30px; /* Narrower for row letters */
-}
+.cell-status { color: #28a745; }
