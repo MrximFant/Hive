@@ -112,16 +112,39 @@ async function init() {
         mapData = createMapData();
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
-        const panzoom = Panzoom(dom.mapContainer, { maxScale: 30, minScale: 0.3, contain: 'outside', canvas: true });
+
+        // --- NEW LOGIC STARTS HERE ---
+        // 1. Get the dimensions of the wrapper and the map itself
+        const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
+        const mapRect = dom.mapContainer.getBoundingClientRect();
+
+        // 2. Calculate the scale needed to fit the map's width and height
+        const scaleX = wrapperRect.width / mapRect.width;
+        const scaleY = wrapperRect.height / mapRect.height;
+
+        // 3. Use the SMALLER of the two scales to ensure the whole map fits
+        const initialScale = Math.min(scaleX, scaleY);
+        // --- NEW LOGIC ENDS HERE ---
+
+        // 4. Initialize Panzoom with our calculated starting scale
+        const panzoom = Panzoom(dom.mapContainer, { 
+            maxScale: 30, 
+            minScale: 0.1, // Lower minScale for more zoom-out freedom
+            startScale: initialScale, // Set the perfect initial zoom
+            contain: 'outside', 
+            canvas: true 
+        });
+
+        // The rest of the event listeners are the same
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
         dom.exportBtn.addEventListener('click', exportState);
         dom.importBtn.addEventListener('click', () => dom.importFileInput.click());
         dom.importFileInput.addEventListener('change', importState);
         dom.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+
     } catch (error) {
         console.error("Failed to initialize the planner:", error);
         alert("Error: Could not load map data. Please check the console for details.");
     }
 }
-init();
