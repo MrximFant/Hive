@@ -116,7 +116,7 @@ async function init() {
         // This is the original Panzoom setup
         const panzoom = Panzoom(dom.mapContainer, { 
             maxScale: 30, 
-            minScale: 0.15, // The original minScale we had
+            minScale: 0.3, // The original minScale we had
             contain: 'outside', 
             canvas: true 
         });
