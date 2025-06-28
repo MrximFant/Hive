@@ -112,16 +112,44 @@ async function init() {
         mapData = createMapData();
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
-        const panzoom = Panzoom(dom.mapContainer, { maxScale: 30, minScale: 0.15, contain: 'outside', canvas: true });
+
+        // --- NEW CENTERING AND PANNING FIX ---
+
+        // 1. Get the dimensions of the container (the viewable area)
+        const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
+        
+        // 2. The map is a fixed size
+        const mapWidth = 900;
+        const mapHeight = 900;
+
+        // 3. Calculate the X and Y offsets needed to center the map
+        const startX = (wrapperRect.width - mapWidth) / 2;
+        const startY = (wrapperRect.height - mapHeight) / 2;
+
+        // 4. Initialize Panzoom with the correct starting position and NO pan restrictions
+        const panzoom = Panzoom(dom.mapContainer, {
+            maxScale: 30,
+            minScale: 0.15, // Keep the low minScale for lots of zoom-out
+            
+            // --- THESE ARE THE KEY CHANGES ---
+            startX: startX, // Center horizontally
+            startY: startY, // Center vertically
+            // By REMOVING the 'contain' option, we get unlimited panning.
+        });
+        
+        // --- The rest of the event listeners are the same ---
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
         dom.exportBtn.addEventListener('click', exportState);
         dom.importBtn.addEventListener('click', () => dom.importFileInput.click());
         dom.importFileInput.addEventListener('change', importState);
         dom.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+
     } catch (error) {
         console.error("Failed to initialize the planner:", error);
         alert("Error: Could not load map data. Please check the console for details.");
     }
 }
+
+// Make sure to call the function at the end
 init();
