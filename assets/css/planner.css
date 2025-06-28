@@ -7,7 +7,20 @@
 }
 body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; height: 100vh; overflow: hidden; }
 .container { width: 100%; height: calc(100vh - 40px); max-width: 1800px; position: relative; }
-.panzoom-wrapper { width: 100%; height: 100%; overflow: hidden; border: 2px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: grab; background-color: #1e2124; transition: width 0.4s ease; }
+.panzoom-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    cursor: grab;
+    background-color: #1e2124; /* This is the color of your "black bars" */
+    
+    /* --- ADD THESE THREE LINES TO CENTER THE MAP --- */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .panzoom-wrapper:active { cursor: grabbing; }
 #map-container { width: 900px; height: 900px; background-image: url('../images/S3_map.png'); background-size: 100% 100%; background-position: center; }
 #map-grid { position: relative; width: 100%; height: 100%; }
