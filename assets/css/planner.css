@@ -6,8 +6,8 @@
     --grid-size: 13;
 }
 body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; gap: 20px; height: 100vh; overflow: hidden; }
-.container { display: flex; gap: 20px; width: 100%; height: calc(100vh - 40px); max-width: 1800px; position: relative; }
-.panzoom-wrapper { flex-grow: 1; overflow: hidden; border: 2px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: grab; background-color: #1e2124; transition: width 0.4s ease; }
+.container { width: 100%; height: calc(100vh - 40px); max-width: 1800px; position: relative; }
+.panzoom-wrapper { overflow: hidden; width: 100%; height: 100%; border: 2px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.4); cursor: grab; background-color: #1e2124; transition: width 0.4s ease; }
 .panzoom-wrapper:active { cursor: grabbing; }
 #map-container { width: 900px; height: 900px; background-image: url('../images/S3_map.png'); background-size: 100% 100%; background-position: center; }
 
@@ -43,18 +43,53 @@ body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); col
 .grid-cell:hover .tooltip { visibility: visible; opacity: 1; }
 .tooltip strong { color: var(--accent-color); }
 
-#control-panel { width: 400px; min-width: 350px; background-color: var(--panel-bg); padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 20px; height: 100%; overflow-y: auto; transition: min-width 0.4s ease, width 0.4s ease, padding 0.4s ease, opacity 0.3s ease 0.1s; }
-.container.sidebar-collapsed #control-panel { width: 0; min-width: 0; padding-left: 0; padding-right: 0; opacity: 0; overflow: hidden; }
+#control-panel {
+    position: absolute; /* Takes it out of the normal flow */
+    top: 0;
+    left: 0;
+    width: 400px;
+    min-width: 350px;
+    height: 100%;
+    background-color: var(--panel-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+    z-index: 1001; /* Make sure it's on top of the map */
+    transition: transform 0.4s ease; /* Animate its position */
+}
+
+.container.sidebar-collapsed #control-panel {
+    transform: translateX(-110%); 
+}
 
 #sidebar-toggle-btn {
-    position: absolute; top: 15px; right: 430px; /* 400px panel + 20px gap + 10px buffer */
-    width: 30px; height: 30px; background-color: var(--accent-color);
-    color: white; border: none; border-radius: 5px 0 0 5px; cursor: pointer;
-    display: flex; justify-content: center; align-items: center; font-size: 1.5em;
-    z-index: 1000; transition: right 0.4s ease, background-color 0.2s ease, transform 0.4s ease;
+    position: absolute;
+    top: 15px;
+    left: 400px; /* Position it at the edge of the OPEN sidebar */
+    width: 30px;
+    height: 30px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 0 5px 5px 0; /* Rounded corners on the right */
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    z-index: 1002; /* On top of the sidebar */
+    transition: left 0.4s ease, background-color 0.2s ease, transform 0.4s ease;
 }
-#sidebar-toggle-btn:hover { background-color: var(--accent-hover); }
-.container.sidebar-collapsed #sidebar-toggle-btn { right: 10px; transform: scaleX(-1); }
+
+/* --- REPLACE the OLD .container.sidebar-collapsed #sidebar-toggle-btn rule with this NEW one --- */
+.container.sidebar-collapsed #sidebar-toggle-btn {
+    left: 10px; /* Position it near the edge when CLOSED */
+    transform: scaleX(-1); /* Flip the « to look like » */
+}
 
 h1,h2,h3 { margin: 0; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); color: var(--accent-color); text-align: center; }
 .control-section { background-color: #2c2f33; padding: 15px; border-radius: 6px; }
