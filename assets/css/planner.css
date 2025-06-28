@@ -15,10 +15,6 @@ body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); col
     box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     cursor: grab;
     background-color: #1e2124;
-    
-    /* --- USE THESE TWO LINES INSTEAD --- */
-    display: grid;
-    place-items: center;
 }
 .panzoom-wrapper:active { cursor: grabbing; }
 #map-container { width: 900px; height: 900px; background-image: url('../images/S3_map.png'); background-size: 100% 100%; background-position: center; }
