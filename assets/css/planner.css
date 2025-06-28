@@ -18,8 +18,11 @@ body { font-family: 'Roboto', sans-serif; background-color: var(--bg-color); col
 .grid-cell-overlay { width: 100%; height: 100%; opacity: 0.6; }
 
 .big-territory { z-index: 1; }
-.small-territory { z-index: 3; border: 1px solid rgba(255, 255, 255, 0.2); background-color: var(--bg-color); }
-
+.small-territory { 
+    z-index: 3; 
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(0, 0, 0, 0.3); /* 30% opaque black tint */
+}
 .tile-label {
     position: absolute;
     font-size: 8px; /* Small font size to fit */
