@@ -14,19 +14,22 @@
 <body>
     <div class="container" id="main-container">
         <!-- Sidebar toggle button -->
-        <button id="sidebar-toggle-btn" title="Toggle Sidebar">»</button>
-        
-        <div class="panzoom-wrapper">
-            <div id="map-container">
-                <div id="map-grid"></div>
-            </div>
-        </div>
+        <button id="sidebar-toggle-btn" title="Toggle Sidebar">&laquo;</button>
+
         <aside id="control-panel">
             <h1>Definitive Planner</h1>
             <div class="control-section"><h3>Alliance Management</h3><div id="add-alliance-form"><div class="form-group"><label for="alliance-name-input">Alliance Name:</label><input type="text" id="alliance-name-input" placeholder="e.g., The Winners"></div><div class="form-group"><label for="alliance-color-input">Alliance Color:</label><input type="color" id="alliance-color-input" value="#ff3e3e"></div><button id="add-alliance-btn" class="button">Add Alliance</button></div></div>
             <div class="control-section"><h2>Alliances & Buffs</h2><p id="alliance-selection-info">Click an alliance below to make it active, then click on the map to assign/unassign tiles.</p><ul id="alliance-list"></ul></div>
             <div class="control-section"><h3>Data Management</h3><div id="data-management-buttons"><button id="export-btn" class="button secondary">Export to File</button><button id="import-btn" class="button secondary">Import from File</button><input type="file" id="import-file-input" accept=".json" style="display: none;"></div></div>
         </aside>
+
+        
+        <div class="panzoom-wrapper">
+            <div id="map-container">
+                <div id="map-grid"></div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Scripts at the end of the body for better performance -->
