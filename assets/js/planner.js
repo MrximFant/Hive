@@ -112,30 +112,15 @@ async function init() {
         mapData = createMapData();
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
-
-        // --- NEW LOGIC STARTS HERE ---
-        // 1. Get the dimensions of the wrapper and the map itself
-        const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
-        const mapRect = dom.mapContainer.getBoundingClientRect();
-
-        // 2. Calculate the scale needed to fit the map's width and height
-        const scaleX = wrapperRect.width / mapRect.width;
-        const scaleY = wrapperRect.height / mapRect.height;
-
-        // 3. Use the SMALLER of the two scales to ensure the whole map fits
-        const initialScale = Math.min(scaleX, scaleY);
-        // --- NEW LOGIC ENDS HERE ---
-
-        // 4. Initialize Panzoom with our calculated starting scale
+        
+        // This is the original Panzoom setup
         const panzoom = Panzoom(dom.mapContainer, { 
             maxScale: 30, 
-            minScale: 0.1, // Lower minScale for more zoom-out freedom
-            startScale: initialScale, // Set the perfect initial zoom
+            minScale: 0.15, // The original minScale we had
             contain: 'outside', 
             canvas: true 
         });
 
-        // The rest of the event listeners are the same
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
         dom.exportBtn.addEventListener('click', exportState);
