@@ -105,6 +105,35 @@ function exportState() { if (Object.keys(alliances).length === 0) { alert("Nothi
 function importState(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { if (!confirm('Importing a new file will overwrite your current plan. Are you sure?')) { event.target.value = ''; return; } try { const data = JSON.parse(e.target.result); if (typeof data !== 'object' || data === null || Array.isArray(data)) throw new Error("Invalid format."); alliances = {}; Object.values(data).forEach(ally => { alliances[ally.id] = { ...ally, tiles: ally.tiles.map(Number) }; }); nextAllianceId = Math.max(-1, ...Object.keys(alliances).map(Number)) + 1; activeAllianceId = null; renderAlliances(); renderMap(); alert('Plan loaded!'); } catch (err) { alert('Failed to load file.\n' + err.message); } }; reader.readAsText(file); event.target.value = ''; }
 function toggleSidebar() { dom.mainContainer.classList.toggle('sidebar-collapsed'); }
 
+
+// Add this new function before your init() function
+function centerAndZoomMap(panzoomInstance) {
+    // 1. Get the current size of the map's container
+    const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
+    
+    // 2. Define the map's fixed dimensions
+    const mapWidth = 900;
+    const mapHeight = 900;
+
+    // 3. Calculate the scale needed to fit the map inside the container
+    const scaleX = wrapperRect.width / mapWidth;
+    const scaleY = wrapperRect.height / mapHeight;
+    const targetScale = Math.min(scaleX, scaleY); // Use the smaller scale to ensure no cropping
+
+    // 4. Calculate the X and Y positions to center the newly scaled map
+    const targetX = (wrapperRect.width - (mapWidth * targetScale)) / 2;
+    const targetY = (wrapperRect.height - (mapHeight * targetScale)) / 2;
+
+    // 5. Use Panzoom's 'reset' method to apply the new view
+    // This is better than calling pan() and zoom() separately
+    panzoomInstance.reset({
+        scale: targetScale,
+        x: targetX,
+        y: targetY
+    });
+}
+
+
 // --- INITIALIZATION ---
 async function init() {
     try {
@@ -116,44 +145,40 @@ async function init() {
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
 
-        // Smart Scaling Logic (this part is the same)
-        const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
-        const mapWidth = 900;
-        const mapHeight = 900;
-        const scaleX = wrapperRect.width / mapWidth;
-        const scaleY = wrapperRect.height / mapHeight;
-        const startScale = Math.min(scaleX, scaleY);
-        const startX = (wrapperRect.width - (mapWidth * startScale)) / 2;
-        const startY = (wrapperRect.height - (mapHeight * startScale)) / 2;
-
+        // Initialize Panzoom with simple defaults. The observer will position it.
         const panzoom = Panzoom(dom.mapContainer, {
             maxScale: 30,
             minScale: 0.1,
-            startScale: startScale,
-            startX: startX,
-            startY: startY,
         });
 
-        // --- NEW DRAG-DETECTION LOGIC ---
+        // --- THE RESIZEOBSERVER FIX ---
+        // Create an observer that will call our centering function whenever the
+        // map's container (.panzoom-wrapper) changes size.
+        const resizeObserver = new ResizeObserver(() => {
+            centerAndZoomMap(panzoom);
+        });
 
-        // When a pan starts, reset our state and record the start position.
+        // Tell the observer to start watching the map container's parent element.
+        resizeObserver.observe(dom.mapContainer.parentElement);
+
+        // --- Drag-to-Click Fix (this is the same as before) ---
+        let panStartCoords = { x: 0, y: 0 };
+        let wasDragging = false;
+        const PAN_THRESHOLD = 5;
         dom.mapContainer.addEventListener('panzoomstart', (e) => {
             wasDragging = false;
             panStartCoords = { x: e.detail.x, y: e.detail.y };
         });
-
-        // As the user pans, check if they've moved past our threshold.
         dom.mapContainer.addEventListener('panzoompan', (e) => {
             const dx = Math.abs(e.detail.x - panStartCoords.x);
             const dy = Math.abs(e.detail.y - panStartCoords.y);
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance > PAN_THRESHOLD) {
+            if (Math.sqrt(dx * dx + dy * dy) > PAN_THRESHOLD) {
                 wasDragging = true;
             }
         });
+        // Add this to your click handler: if (wasDragging) return;
 
-        // --- Standard Event Listeners (the rest are the same) ---
+        // --- Standard Event Listeners ---
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
         dom.exportBtn.addEventListener('click', exportState);
