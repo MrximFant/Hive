@@ -93,7 +93,24 @@ function renderAlliances() {
 }
 
 // --- STATE & LOGIC FUNCTIONS ---
-function handleCellClick(territoryId) {  if (wasDragging) return; if (activeAllianceId === null) { alert('Please select an active alliance from the list on the left first!'); return; } const tileIsOwned = alliances[activeAllianceId].tiles.includes(Number(territoryId)); for (const id in alliances) { alliances[id].tiles = alliances[id].tiles.filter(tId => tId !== Number(territoryId)); } if (!tileIsOwned) { alliances[activeAllianceId].tiles.push(Number(territoryId)); } updateAllBuffs(); renderMap(); }
+function handleCellClick(territoryId) {
+    // This check is essential to prevent clicks during a pan.
+    if (wasDragging) return;
+
+    if (activeAllianceId === null) {
+        alert('Please select an active alliance from the list on the left first!');
+        return;
+    }
+    const tileIsOwned = alliances[activeAllianceId].tiles.includes(Number(territoryId));
+    for (const id in alliances) {
+        alliances[id].tiles = alliances[id].tiles.filter(tId => tId !== Number(territoryId));
+    }
+    if (!tileIsOwned) {
+        alliances[activeAllianceId].tiles.push(Number(territoryId));
+    }
+    updateAllBuffs();
+    renderMap();
+}
 function addAlliance() { const name = dom.allianceNameInput.value.trim(); if (!name) return; const id = nextAllianceId++; alliances[id] = { id: id, name: name, color: dom.allianceColorInput.value, tiles: [] }; dom.allianceNameInput.value = ''; dom.allianceColorInput.value = vibrantColors[nextAllianceId % vibrantColors.length]; setActiveAlliance(id); }
 function deleteAlliance(idToDelete) { if (!confirm(`Are you sure you want to delete the alliance "${alliances[idToDelete].name}"?`)) { return; } delete alliances[idToDelete]; if (activeAllianceId === idToDelete) { activeAllianceId = null; } renderAlliances(); renderMap(); }
 function setActiveAlliance(id) { activeAllianceId = id; renderAlliances(); }
@@ -145,39 +162,51 @@ async function init() {
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
 
-        // Initialize Panzoom with simple defaults. The observer will position it.
+        // 1. Initialize Panzoom with simple settings
         const panzoom = Panzoom(dom.mapContainer, {
             maxScale: 30,
             minScale: 0.1,
         });
 
-        // --- THE RESIZEOBSERVER FIX ---
-        // Create an observer that will call our centering function whenever the
-        // map's container (.panzoom-wrapper) changes size.
-        const resizeObserver = new ResizeObserver(() => {
-            centerAndZoomMap(panzoom);
-        });
+        // 2. Use setTimeout to wait for the initial layout to be stable
+        setTimeout(() => {
+            // Get the container's final dimensions
+            const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
+            const mapWidth = 900;
+            const mapHeight = 900;
+            
+            // Calculate the perfect scale and position
+            const scaleX = wrapperRect.width / mapWidth;
+            const scaleY = wrapperRect.height / mapHeight;
+            const startScale = Math.min(scaleX, scaleY);
+            const startX = (wrapperRect.width - (mapWidth * startScale)) / 2;
+            const startY = (wrapperRect.height - (mapHeight * startScale)) / 2;
 
-        // Tell the observer to start watching the map container's parent element.
-        resizeObserver.observe(dom.mapContainer.parentElement);
+            // Apply the initial view using Panzoom's own methods
+            panzoom.zoom(startScale, { animate: false });
+            panzoom.pan(startX, startY, { animate: false });
+        }, 0); // A timeout of 0ms is enough to defer execution
 
-        // --- Drag-to-Click Fix (this is the same as before) ---
-        let panStartCoords = { x: 0, y: 0 };
-        let wasDragging = false;
+        // 3. Set up the robust drag-detection logic
+        const panStartCoords = { x: 0, y: 0 };
+        const wasDragging = false; // This is a local variable now
         const PAN_THRESHOLD = 5;
+        
         dom.mapContainer.addEventListener('panzoomstart', (e) => {
-            wasDragging = false;
-            panStartCoords = { x: e.detail.x, y: e.detail.y };
+            // NOTE: We're now directly modifying the global variable from inside this closure
+            window.wasDragging = false;
+            panStartCoords.x = e.detail.x;
+            panStartCoords.y = e.detail.y;
         });
+
         dom.mapContainer.addEventListener('panzoompan', (e) => {
             const dx = Math.abs(e.detail.x - panStartCoords.x);
             const dy = Math.abs(e.detail.y - panStartCoords.y);
             if (Math.sqrt(dx * dx + dy * dy) > PAN_THRESHOLD) {
-                wasDragging = true;
+                window.wasDragging = true;
             }
         });
-        // Add this to your click handler: if (wasDragging) return;
-
+        
         // --- Standard Event Listeners ---
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
