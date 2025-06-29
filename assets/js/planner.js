@@ -162,37 +162,47 @@ async function init() {
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
 
-        // 1. Initialize Panzoom with simple settings
+        // 1. Initialize Panzoom with simple settings. The observer will position it.
         const panzoom = Panzoom(dom.mapContainer, {
             maxScale: 30,
             minScale: 0.1,
         });
 
-        // 2. Use setTimeout with a slightly longer delay to ensure the layout is stable
-        setTimeout(() => {
-            // Get the container's final, stable dimensions
-            const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
+        // 2. THE "FIRE-ONCE" RESIZEOBSERVER FIX
+        const resizeObserver = new ResizeObserver(entries => {
+            // We only care about the first (and only) element being observed.
+            const entry = entries[0];
             
-            // If the wrapper somehow still has no size, do nothing to prevent errors.
-            if (wrapperRect.width === 0 || wrapperRect.height === 0) {
+            // Get the content size from the observer's entry.
+            const wrapperWidth = entry.contentRect.width;
+            const wrapperHeight = entry.contentRect.height;
+            
+            // If the container has no size yet, do nothing and wait for the next check.
+            if (wrapperWidth === 0 || wrapperHeight === 0) {
                 return;
             }
-            
-            const mapWidth = 900;
-            const mapHeight = 900;
+
+            // --- If we get here, the container has a valid size! ---
             
             // Calculate the perfect scale and position
-            const scaleX = wrapperRect.width / mapWidth;
-            const scaleY = wrapperRect.height / mapHeight;
+            const mapWidth = 900;
+            const mapHeight = 900;
+            const scaleX = wrapperWidth / mapWidth;
+            const scaleY = wrapperHeight / mapHeight;
             const startScale = Math.min(scaleX, scaleY);
-            const startX = (wrapperRect.width - (mapWidth * startScale)) / 2;
-            const startY = (wrapperRect.height - (mapHeight * startScale)) / 2;
+            const startX = (wrapperWidth - (mapWidth * startScale)) / 2;
+            const startY = (wrapperHeight - (mapHeight * startScale)) / 2;
 
-            // Apply the initial view using Panzoom's own methods
+            // Apply the initial view
             panzoom.zoom(startScale, { animate: false });
             panzoom.pan(startX, startY, { animate: false });
-            
-        }, 100); // <-- THIS IS THE KEY CHANGE: 100ms delay instead of 0
+
+            // CRUCIAL STEP: Stop observing so this only runs once.
+            resizeObserver.disconnect();
+        });
+
+        // Tell the observer to start watching the map's container.
+        resizeObserver.observe(dom.mapContainer.parentElement);
 
         // 3. Robust drag-detection logic (this is the same as before)
         const panStartCoords = { x: 0, y: 0 };
