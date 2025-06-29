@@ -162,50 +162,55 @@ async function init() {
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
 
-        // 1. Initialize Panzoom
+        // 1. Initialize Panzoom with simple settings
         const panzoom = Panzoom(dom.mapContainer, {
             maxScale: 30,
             minScale: 0.1,
         });
 
-        // 2. Set initial view after a short delay to ensure layout is stable
+        // 2. Use setTimeout with a slightly longer delay to ensure the layout is stable
         setTimeout(() => {
+            // Get the container's final, stable dimensions
             const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
+            
+            // If the wrapper somehow still has no size, do nothing to prevent errors.
+            if (wrapperRect.width === 0 || wrapperRect.height === 0) {
+                return;
+            }
+            
             const mapWidth = 900;
             const mapHeight = 900;
+            
+            // Calculate the perfect scale and position
             const scaleX = wrapperRect.width / mapWidth;
             const scaleY = wrapperRect.height / mapHeight;
             const startScale = Math.min(scaleX, scaleY);
             const startX = (wrapperRect.width - (mapWidth * startScale)) / 2;
             const startY = (wrapperRect.height - (mapHeight * startScale)) / 2;
+
+            // Apply the initial view using Panzoom's own methods
             panzoom.zoom(startScale, { animate: false });
             panzoom.pan(startX, startY, { animate: false });
-        }, 0);
+            
+        }, 100); // <-- THIS IS THE KEY CHANGE: 100ms delay instead of 0
 
-        // --- 3. ROBUST DRAG-DETECTION LOGIC ---
+        // 3. Robust drag-detection logic (this is the same as before)
         const panStartCoords = { x: 0, y: 0 };
-        const PAN_THRESHOLD = 5; // A 5-pixel movement threshold
-
-        // When a pan starts, reset the flag and record the starting point.
+        const PAN_THRESHOLD = 5;
         dom.mapContainer.addEventListener('panzoomstart', (e) => {
-            wasDragging = false; // Reset the global flag
+            wasDragging = false;
             panStartCoords.x = e.detail.x;
             panStartCoords.y = e.detail.y;
         });
-
-        // As the user pans, check if they've moved past the threshold.
         dom.mapContainer.addEventListener('panzoompan', (e) => {
-            // If we already know we're dragging, no need to check again.
             if (wasDragging) return;
-
             const dx = Math.abs(e.detail.x - panStartCoords.x);
             const dy = Math.abs(e.detail.y - panStartCoords.y);
-            
             if (Math.sqrt(dx * dx + dy * dy) > PAN_THRESHOLD) {
-                wasDragging = true; // Set the global flag
+                wasDragging = true;
             }
         });
-
+        
         // --- Standard Event Listeners ---
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
