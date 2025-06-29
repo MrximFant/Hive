@@ -110,3 +110,50 @@ input[type="color"] { padding: 4px; height: 40px; }
 .alliance-item.editing .alliance-buffs,
 .alliance-item.editing .alliance-header { display: none; }
 .edit-form-buttons { display: flex; gap: 10px; }
+
+
+/* ==========================================================================
+   Mobile Responsive Styles
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    
+    /* On mobile, the main padding is smaller */
+    body {
+        padding: 5px;
+        gap: 5px;
+    }
+    .container {
+        gap: 5px;
+        height: calc(100vh - 10px);
+    }
+
+    /* 
+     * When the sidebar is OPEN on mobile, make it take up most of the screen
+     * but not all, and make it an overlay so the map is still behind it.
+     */
+    #control-panel {
+        position: absolute; /* Make it an overlay on mobile */
+        z-index: 1001;
+        width: 90vw; /* 90% of the viewport width */
+        min-width: 280px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    /*
+     * The button's position when the sidebar is OPEN on mobile.
+     * It should be at the edge of the 90vw-wide panel.
+     */
+    #sidebar-toggle-btn {
+        left: 90vw;
+    }
+
+    /*
+     * The map wrapper on mobile should always take up 100% of the container width,
+     * as the sidebar is now an overlay.
+     */
+    .panzoom-wrapper {
+        flex-grow: 0; /* Disable flex-grow */
+        width: 100%;
+    }
+}
