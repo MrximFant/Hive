@@ -1,5 +1,7 @@
 // Global variables
-let isPanning = false;
+let panStartCoords = { x: 0, y: 0 };
+let wasDragging = false;
+const PAN_THRESHOLD = 5; 
 let mapData = [];
 let tileDataMap = {};
 let alliances = {};
@@ -91,7 +93,7 @@ function renderAlliances() {
 }
 
 // --- STATE & LOGIC FUNCTIONS ---
-function handleCellClick(territoryId) { if (isPanning) return; if (activeAllianceId === null) { alert('Please select an active alliance from the list on the left first!'); return; } const tileIsOwned = alliances[activeAllianceId].tiles.includes(Number(territoryId)); for (const id in alliances) { alliances[id].tiles = alliances[id].tiles.filter(tId => tId !== Number(territoryId)); } if (!tileIsOwned) { alliances[activeAllianceId].tiles.push(Number(territoryId)); } updateAllBuffs(); renderMap(); }
+function handleCellClick(territoryId) {  if (wasDragging) return; if (activeAllianceId === null) { alert('Please select an active alliance from the list on the left first!'); return; } const tileIsOwned = alliances[activeAllianceId].tiles.includes(Number(territoryId)); for (const id in alliances) { alliances[id].tiles = alliances[id].tiles.filter(tId => tId !== Number(territoryId)); } if (!tileIsOwned) { alliances[activeAllianceId].tiles.push(Number(territoryId)); } updateAllBuffs(); renderMap(); }
 function addAlliance() { const name = dom.allianceNameInput.value.trim(); if (!name) return; const id = nextAllianceId++; alliances[id] = { id: id, name: name, color: dom.allianceColorInput.value, tiles: [] }; dom.allianceNameInput.value = ''; dom.allianceColorInput.value = vibrantColors[nextAllianceId % vibrantColors.length]; setActiveAlliance(id); }
 function deleteAlliance(idToDelete) { if (!confirm(`Are you sure you want to delete the alliance "${alliances[idToDelete].name}"?`)) { return; } delete alliances[idToDelete]; if (activeAllianceId === idToDelete) { activeAllianceId = null; } renderAlliances(); renderMap(); }
 function setActiveAlliance(id) { activeAllianceId = id; renderAlliances(); }
@@ -114,44 +116,44 @@ async function init() {
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
 
-        // --- PART 1: SMART SCALING LOGIC ---
+        // Smart Scaling Logic (this part is the same)
         const wrapperRect = dom.mapContainer.parentElement.getBoundingClientRect();
         const mapWidth = 900;
         const mapHeight = 900;
-
         const scaleX = wrapperRect.width / mapWidth;
         const scaleY = wrapperRect.height / mapHeight;
-
-        // Use the smaller scale to ensure the whole map fits without cropping
         const startScale = Math.min(scaleX, scaleY);
-
-        // Center the newly scaled map
         const startX = (wrapperRect.width - (mapWidth * startScale)) / 2;
         const startY = (wrapperRect.height - (mapHeight * startScale)) / 2;
 
-        // Initialize Panzoom with all our new options
         const panzoom = Panzoom(dom.mapContainer, {
             maxScale: 30,
-            minScale: 0.1, // Keep a very low minScale for lots of zoom-out freedom
+            minScale: 0.1,
             startScale: startScale,
             startX: startX,
             startY: startY,
         });
-        
-        // --- PART 2: ACCIDENTAL CLICK FIX ---
-        // Listen to panzoom events on the map element itself
-        dom.mapContainer.addEventListener('panzoomstart', () => {
-            isPanning = true;
+
+        // --- NEW DRAG-DETECTION LOGIC ---
+
+        // When a pan starts, reset our state and record the start position.
+        dom.mapContainer.addEventListener('panzoomstart', (e) => {
+            wasDragging = false;
+            panStartCoords = { x: e.detail.x, y: e.detail.y };
         });
 
-        dom.mapContainer.addEventListener('panzoomend', () => {
-            // Use a tiny timeout to ensure the click event has time to fire first if it's going to
-            setTimeout(() => {
-                isPanning = false;
-            }, 50);
+        // As the user pans, check if they've moved past our threshold.
+        dom.mapContainer.addEventListener('panzoompan', (e) => {
+            const dx = Math.abs(e.detail.x - panStartCoords.x);
+            const dy = Math.abs(e.detail.y - panStartCoords.y);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > PAN_THRESHOLD) {
+                wasDragging = true;
+            }
         });
 
-        // --- Standard Event Listeners ---
+        // --- Standard Event Listeners (the rest are the same) ---
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
         dom.exportBtn.addEventListener('click', exportState);
