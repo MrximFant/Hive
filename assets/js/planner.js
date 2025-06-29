@@ -162,29 +162,26 @@ async function init() {
         generateMap();
         dom.allianceColorInput.value = vibrantColors[0];
 
-        // 1. Initialize Panzoom with simple settings. The observer will position it.
+        // --- MOBILE-FIRST INITIALIZATION ---
+        // If the screen is narrow, start with the sidebar closed.
+        if (window.innerWidth <= 768) {
+            dom.mainContainer.classList.add('sidebar-collapsed');
+        }
+
+        // Initialize Panzoom with simple settings.
         const panzoom = Panzoom(dom.mapContainer, {
             maxScale: 30,
             minScale: 0.1,
         });
 
-        // 2. THE "FIRE-ONCE" RESIZEOBSERVER FIX
+        // Use the robust "Fire-Once" ResizeObserver to set the initial view.
         const resizeObserver = new ResizeObserver(entries => {
-            // We only care about the first (and only) element being observed.
             const entry = entries[0];
-            
-            // Get the content size from the observer's entry.
             const wrapperWidth = entry.contentRect.width;
             const wrapperHeight = entry.contentRect.height;
             
-            // If the container has no size yet, do nothing and wait for the next check.
-            if (wrapperWidth === 0 || wrapperHeight === 0) {
-                return;
-            }
+            if (wrapperWidth === 0 || wrapperHeight === 0) return;
 
-            // --- If we get here, the container has a valid size! ---
-            
-            // Calculate the perfect scale and position
             const mapWidth = 900;
             const mapHeight = 900;
             const scaleX = wrapperWidth / mapWidth;
@@ -193,18 +190,14 @@ async function init() {
             const startX = (wrapperWidth - (mapWidth * startScale)) / 2;
             const startY = (wrapperHeight - (mapHeight * startScale)) / 2;
 
-            // Apply the initial view
             panzoom.zoom(startScale, { animate: false });
             panzoom.pan(startX, startY, { animate: false });
-
-            // CRUCIAL STEP: Stop observing so this only runs once.
+            
             resizeObserver.disconnect();
         });
-
-        // Tell the observer to start watching the map's container.
         resizeObserver.observe(dom.mapContainer.parentElement);
 
-        // 3. Robust drag-detection logic (this is the same as before)
+        // Robust drag-detection logic.
         const panStartCoords = { x: 0, y: 0 };
         const PAN_THRESHOLD = 5;
         dom.mapContainer.addEventListener('panzoomstart', (e) => {
@@ -214,14 +207,12 @@ async function init() {
         });
         dom.mapContainer.addEventListener('panzoompan', (e) => {
             if (wasDragging) return;
-            const dx = Math.abs(e.detail.x - panStartCoords.x);
-            const dy = Math.abs(e.detail.y - panStartCoords.y);
-            if (Math.sqrt(dx * dx + dy * dy) > PAN_THRESHOLD) {
+            if (Math.sqrt(Math.pow(e.detail.x - panStartCoords.x, 2) + Math.pow(e.detail.y - panStartCoords.y, 2)) > PAN_THRESHOLD) {
                 wasDragging = true;
             }
         });
         
-        // --- Standard Event Listeners ---
+        // Standard Event Listeners.
         dom.mapContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
         dom.addAllianceBtn.addEventListener('click', addAlliance);
         dom.exportBtn.addEventListener('click', exportState);
@@ -234,6 +225,7 @@ async function init() {
         alert("Error: Could not load map data. Please check the console for details.");
     }
 }
+
 
 // Make sure to call the function at the end
 init();
