@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Multi-Map Builder</title>
+    <!-- Link to Global Styles (Optional if only builder.html exists or builder has unique base styles) -->
+    <!-- <link rel="stylesheet" href="assets/css/style.css"> -->
+    <!-- Link to Builder Specific Styles -->
+    <link rel="stylesheet" href="assets/css/builder-styles.css">
+</head>
+<body class="builder-page"> <!-- Added class for specific body styling -->
+
+    <div id="sidebar">
+        <h3>Buildable Items</h3>
+        <div id="buildable-items-list">
+            <!-- Base item - its placed image will be dynamically set -->
+            <div class="buildable-item" draggable="true"
+                 data-item-id="base" data-width="3" data-height="3"
+                 data-name="Base"
+                 data-image-src="assets/images/baseneutral.jpg"> <!-- Sidebar preview image -->
+                <img src="assets/images/baseneutral.jpg" alt="Base Preview">
+                Base (3x3)
+            </div>
+
+            <!-- Other Static Items -->
+            <div class="buildable-item" draggable="true"
+                 data-item-id="city" data-width="11" data-height="11"
+                 data-image-src="assets/images/city.jpg" data-name="City">
+                <img src="assets/images/city.jpg" alt="City Preview">
+                City (11x11)
+            </div>
+            <div class="buildable-item" draggable="true"
+                 data-item-id="lake" data-width="9" data-height="10"
+                 data-image-src="assets/images/lake.jpg" data-name="Lake">
+                <img src="assets/images/lake.jpg" alt="Lake Preview">
+                Lake (9x10)
+            </div>
+            <!-- Assuming you might have rotated versions as separate items if dimensions differ -->
+            <!--
+            <div class="buildable-item" draggable="true"
+                 data-item-id="lake_rotated" data-width="10" data-height="9"
+                 data-image-src="assets/images/lake.jpg" data-name="Lake (Rotated)">
+                <img src="assets/images/lake.jpg" alt="Lake Rotated Preview" style="transform: rotate(90deg);">
+                Lake (10x9)
+            </div>
+            -->
+            <div class="buildable-item" draggable="true"
+                 data-item-id="mountain" data-width="9" data-height="10"
+                 data-image-src="assets/images/mountain.jpg" data-name="Mountain">
+                <img src="assets/images/mountain.jpg" alt="Mountain Preview">
+                Mountain (9x10)
+            </div>
+            <!--
+            <div class="buildable-item" draggable="true"
+                 data-item-id="mountain_rotated" data-width="10" data-height="9"
+                 data-image-src="assets/images/mountain.jpg" data-name="Mountain (Rotated)">
+                <img src="assets/images/mountain.jpg" alt="Mountain Rotated Preview" style="transform: rotate(90deg);">
+                Mountain (10x9)
+            </div>
+            -->
+            <div class="buildable-item" draggable="true"
+                 data-item-id="mountain_lake" data-width="16" data-height="17"
+                 data-image-src="assets/images/mountainlake.jpg" data-name="Mountain Lake">
+                <img src="assets/images/mountainlake.jpg" alt="Mountain Lake Preview">
+                Mountain Lake (16x17)
+            </div>
+            <div class="buildable-item" draggable="true"
+                 data-item-id="furnace" data-width="5" data-height="5"
+                 data-image-src="assets/images/furnace.jpg" data-name="Furnace">
+                <img src="assets/images/furnace.jpg" alt="Furnace Preview">
+                Furnace (5x5)
+            </div>
+            <div class="buildable-item" draggable="true"
+                 data-item-id="mg" data-width="3" data-height="3"
+                 data-image-src="assets/images/mg.jpg" data-name="MG Unit">
+                <img src="assets/images/mg.jpg" alt="MG Unit Preview">
+                MG Unit (3x3)
+            </div>
+        </div>
+
+        <div id="alliance-section">
+            <h3>Alliances</h3>
+            <!-- Manual Add Alliance - Can be hidden/removed if only prompt-based setup is desired -->
+            <div class="input-group">
+                <input type="text" id="new-alliance-name" placeholder="New Alliance Name">
+                <button id="add-alliance-btn">Add</button>
+            </div>
+            <ul id="alliance-list">
+                <!-- Alliance list items will be dynamically added here by JS -->
+            </ul>
+        </div>
+    </div>
+
+    <div id="main-area">
+        <div id="creator-note">
+            Made by Mr Xim, MAD1 Alliance, Server 958.
+        </div>
+        <div id="toolbar">
+            <label for="tile-size-slider">Zoom:</label>
+            <input type="range" id="tile-size-slider" min="2" max="30" value="10" title="Adjust Grid Zoom">
+            <span id="tile-size-value">10px</span>
+            <span>|</span>
+            <span>Grid: <span id="grid-dimensions-display">WxH</span> Tiles</span>
+            <span>|</span>
+            <button id="clear-all-btn" title="Remove all items from all maps">Clear All</button>
+            <span>|</span>
+            <span>Selected Alliance: <strong id="current-alliance-display">None</strong></span>
+            <span>|</span>
+            <span id="distance-display">Distance: N/A</span>
+            <span>|</span> <!-- Optional separator -->
+        <button id="save-setup-btn" title="Save current setup to this browser">Save Setup</button>
+        <button id="load-setup-btn" title="Load setup from this browser">Load Setup</button>
+        <button id="clear-saved-setup-btn" title="Clear saved setup from this browser">Clear Saved</button>
+
+            
+        </div>
+
+        <div id="grid-wrapper">
+            <div id="maps-super-container">
+                <!-- Individual map containers (3x3 grid) will be dynamically added here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/builder-logic.js"></script>
+</body>
+</html>
